@@ -402,6 +402,15 @@ export type Database = {
         }
         Returns: number
       }
+      check_availability_excluding_reservation: {
+        Args: {
+          p_check_in: string
+          p_check_out: string
+          p_exclude_reservation_id: string
+          p_room_type_id: string
+        }
+        Returns: number
+      }
       create_reservation: {
         Args: {
           p_check_in: string
@@ -417,6 +426,10 @@ export type Database = {
       current_staff_role: {
         Args: never
         Returns: Database["public"]["Enums"]["staff_role"]
+      }
+      mark_no_shows: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
     }
     Enums: {

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentStaff } from '@/lib/get-current-staff'
 import { NewReservationForm } from '@/components/reservations/new-reservation-form'
 import { ReservationsTable } from '@/components/reservations/reservations-table'
+import { RunNoShowCheckButton } from '@/components/reservations/run-no-show-check-button'
 import type { Enums } from '@/lib/database.types'
 
 export default async function ReservationsPage({
@@ -55,6 +56,12 @@ export default async function ReservationsPage({
         {canManage && <NewReservationForm roomTypes={roomTypes || []} />}
       </div>
 
+      {staff.role === 'admin' && (
+        <div className="mb-4">
+          <RunNoShowCheckButton />
+        </div>
+      )}
+
       <form className="mb-4 flex gap-3" method="get">
         <input
           name="guest"
@@ -82,7 +89,7 @@ export default async function ReservationsPage({
         </button>
       </form>
 
-      <ReservationsTable reservations={filteredByGuest} canManage={canManage} />
+      <ReservationsTable reservations={filteredByGuest} roomTypes={roomTypes || []} canManage={canManage} />
     </div>
   )
 }

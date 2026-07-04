@@ -108,6 +108,128 @@ export async function createReservationAction(formData: FormData) {
   return { success: true, reservationId }
 }
 
+export async function runNoShowCheck() {
+  const staff = await getCurrentStaff()
+  if (staff.role !== 'admin') {
+    return { error: 'Only admins can run the no-show check.' }
+  }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('mark_no_shows')
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/dashboard/reservations')
+  return { success: true, count: data ?? 0 }
+}
+
+export async function checkAvailabilityForEdit(
+  reservationId: string,
+  roomTypeId: string,
+  checkIn: string,
+  checkOut: string
+) {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('check_availability_excluding_reservation', {
+    p_room_type_id: roomTypeId,
+    p_check_in: checkIn,
+    p_check_out: checkOut,
+    p_exclude_reservation_id: reservationId,
+  })
+
+  if (error) return { error: error.message, available: 0 }
+  return { available: data ?? 0 }
+}
+
+export async function updateReservationDetails(reservationId: string, formData: FormData) {
+  const staff = await getCurrentStaff()
+  if (staff.role !== 'admin' && staff.role !== 'front_desk') {
+    return { error: 'You do not have permission to edit reservations.' }
+  }
+
+  const supabase = await createClient()
+
+  const { data: existing } = await supabase
+    .from('reservations')
+    .select('status')
+    .eq('id', reservationId)
+    .single()
+
+  if (!existing) return { error: 'Reservation not found.' }
+  if (!['pending', 'confirmed'].includes(existing.status)) {
+    return { error: 'Only pending or confirmed reservations can be edited.' }
+  }
+
+  const roomTypeId = String(formData.get('room_type_id'))
+  const checkIn = String(formData.get('check_in'))
+  const checkOut = String(formData.get('check_out'))
+
+  if (!roomTypeId || !checkIn || !checkOut) {
+    return { error: 'Room type and dates are required.' }
+  }
+  if (checkOut <= checkIn) {
+    return { error: 'Check-out must be after check-in.' }
+  }
+
+  const { available, error: availError } = await checkAvailabilityForEdit(
+    reservationId,
+    roomTypeId,
+    checkIn,
+    checkOut
+  )
+  if (availError) return { error: availError }
+  if (available <= 0) return { error: 'No rooms of this type available for the selected dates.' }
+
+  const { data: roomType } = await supabase
+    .from('room_types')
+    .select('base_rate')
+    .eq('id', roomTypeId)
+    .single()
+
+  if (!roomType) return { error: 'Room type not found.' }
+
+  const nights =
+    (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)
+  const totalAmount = roomType.base_rate * nights
+
+  const { error: updateError } = await supabase
+    .from('reservations')
+    .update({
+      room_type_id: roomTypeId,
+      check_in: checkIn,
+      check_out: checkOut,
+      rate_applied: roomType.base_rate,
+      total_amount: totalAmount,
+      room_id: null, // room type may have changed — force re-assignment at check-in
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', reservationId)
+
+  if (updateError) return { error: updateError.message }
+
+  // Reflect the new total on the auto-generated room_charge line item.
+  // Payments already recorded are untouched — only the charge side updates.
+  const { data: folio } = await supabase
+    .from('folios')
+    .select('id')
+    .eq('reservation_id', reservationId)
+    .single()
+
+  if (folio) {
+    await supabase
+      .from('folio_line_items')
+      .update({
+        amount: totalAmount,
+        description: `Room charge: ${nights} nights (updated)`,
+      })
+      .eq('folio_id', folio.id)
+      .eq('type', 'room_charge')
+  }
+
+  revalidatePath('/dashboard/reservations')
+  return { success: true }
+}
+
 export async function cancelReservation(id: string) {
   const staff = await getCurrentStaff()
   if (staff.role !== 'admin' && staff.role !== 'front_desk') {
