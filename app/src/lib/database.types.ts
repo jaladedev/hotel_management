@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      cash_reconciliations: {
+        Row: {
+          counted_cash: number
+          created_at: string
+          expected_cash: number
+          id: string
+          notes: string | null
+          reconciliation_date: string
+          recorded_by: string
+          variance: number
+        }
+        Insert: {
+          counted_cash: number
+          created_at?: string
+          expected_cash: number
+          id?: string
+          notes?: string | null
+          reconciliation_date: string
+          recorded_by: string
+          variance?: number
+        }
+        Update: {
+          counted_cash?: number
+          created_at?: string
+          expected_cash?: number
+          id?: string
+          notes?: string | null
+          reconciliation_date?: string
+          recorded_by?: string
+          variance?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_reconciliations_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       folio_line_items: {
         Row: {
           amount: number
