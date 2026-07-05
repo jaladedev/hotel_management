@@ -6,6 +6,7 @@ import {
   publicCheckAvailability,
   publicGetPriceEstimate,
   publicCreateReservation,
+  publicJoinWaitlist,
 } from '@/app/actions/public-booking'
 import type { Tables } from '@/lib/database.types'
 
@@ -48,6 +49,24 @@ export function PublicBookingForm({
     setPriceEstimate(priceResult)
   }
 
+  const [waitlistJoined, setWaitlistJoined] = useState(false)
+  const [waitlistPending, setWaitlistPending] = useState(false)
+  const [waitlistError, setWaitlistError] = useState<string | null>(null)
+
+  async function handleJoinWaitlist() {
+    setWaitlistError(null)
+    setWaitlistPending(true)
+    const form = document.getElementById('booking-form') as HTMLFormElement
+    const formData = new FormData(form)
+    const result = await publicJoinWaitlist(formData)
+    setWaitlistPending(false)
+    if (result.error) {
+      setWaitlistError(result.error)
+      return
+    }
+    setWaitlistJoined(true)
+  }
+
   function handleSubmit(formData: FormData) {
     setError(null)
     startTransition(async () => {
@@ -65,7 +84,7 @@ export function PublicBookingForm({
   }
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form id="booking-form" action={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="mb-1 block text-sm font-medium text-gray-700">Check-in</label>
@@ -121,6 +140,28 @@ export function PublicBookingForm({
       {!checking && availability !== null && (
         <p className={`text-sm font-medium ${availability > 0 ? 'text-green-700' : 'text-red-700'}`}>
           {availability > 0 ? `${availability} room(s) available` : 'No rooms available for those dates'}
+        </p>
+      )}
+      {!checking && availability === 0 && !waitlistJoined && (
+        <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+          <p className="mb-2">
+            Fill in your details below, then join the waitlist — we&apos;ll reach out if a room
+            opens up for these dates.
+          </p>
+          <button
+            type="button"
+            onClick={handleJoinWaitlist}
+            disabled={waitlistPending}
+            className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+          >
+            {waitlistPending ? 'Joining...' : 'Join Waitlist'}
+          </button>
+          {waitlistError && <p className="mt-2 text-xs text-red-700">{waitlistError}</p>}
+        </div>
+      )}
+      {waitlistJoined && (
+        <p className="text-sm text-green-700">
+          You&apos;re on the waitlist — we&apos;ll email you if a room opens up.
         </p>
       )}
       {!checking && priceEstimate && priceEstimate.nights > 0 && (

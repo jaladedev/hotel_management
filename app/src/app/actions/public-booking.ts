@@ -152,6 +152,49 @@ export async function publicCreateReservation(formData: FormData) {
   return { success: true, reservationId, folioId }
 }
 
+export async function publicJoinWaitlist(formData: FormData) {
+  const supabase = createServiceClient()
+
+  const roomTypeId = String(formData.get('room_type_id'))
+  const checkIn = String(formData.get('check_in'))
+  const checkOut = String(formData.get('check_out'))
+  const firstName = String(formData.get('guest_first_name') || '').trim()
+  const lastName = String(formData.get('guest_last_name') || '').trim()
+  const email = String(formData.get('guest_email') || '').trim()
+  const phone = String(formData.get('guest_phone') || '').trim() || null
+
+  if (!roomTypeId || !checkIn || !checkOut) return { error: 'Room type and dates are required.' }
+  if (!firstName || !lastName || !email) return { error: 'Name and email are required.' }
+
+  const { data: existingGuest } = await supabase
+    .from('guests')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle()
+
+  let guestId = existingGuest?.id
+
+  if (!guestId) {
+    const { data: newGuest, error: guestError } = await supabase
+      .from('guests')
+      .insert({ first_name: firstName, last_name: lastName, email, phone })
+      .select('id')
+      .single()
+    if (guestError || !newGuest) return { error: guestError?.message || 'Could not save guest.' }
+    guestId = newGuest.id
+  }
+
+  const { error } = await supabase.from('waitlist_entries').insert({
+    guest_id: guestId,
+    room_type_id: roomTypeId,
+    check_in: checkIn,
+    check_out: checkOut,
+  })
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
 export async function publicLookupReservation(reservationId: string, email: string) {
   if (!reservationId || !email) return { error: 'Reservation reference and email are required.' }
 

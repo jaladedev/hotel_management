@@ -589,6 +589,64 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_entries: {
+        Row: {
+          check_in: string
+          check_out: string
+          created_at: string
+          guest_id: string
+          id: string
+          notified_at: string | null
+          promoted_reservation_id: string | null
+          room_type_id: string
+          status: Database["public"]["Enums"]["waitlist_status"]
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          created_at?: string
+          guest_id: string
+          id?: string
+          notified_at?: string | null
+          promoted_reservation_id?: string | null
+          room_type_id: string
+          status?: Database["public"]["Enums"]["waitlist_status"]
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          created_at?: string
+          guest_id?: string
+          id?: string
+          notified_at?: string | null
+          promoted_reservation_id?: string | null
+          room_type_id?: string
+          status?: Database["public"]["Enums"]["waitlist_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_entries_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_entries_room_type_id_fkey"
+            columns: ["room_type_id"]
+            isOneToOne: false
+            referencedRelation: "room_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_entries_promoted_reservation_id_fkey"
+            columns: ["promoted_reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       folio_balances: {
@@ -683,6 +741,7 @@ export type Database = {
       refund_status: "pending" | "processed" | "failed"
       room_status: "vacant" | "occupied" | "dirty" | "clean" | "out_of_order"
       staff_role: "admin" | "front_desk" | "housekeeping"
+      waitlist_status: "waiting" | "notified" | "promoted" | "cancelled" | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -834,6 +893,7 @@ export const Constants = {
       refund_status: ["pending", "processed", "failed"],
       room_status: ["vacant", "occupied", "dirty", "clean", "out_of_order"],
       staff_role: ["admin", "front_desk", "housekeeping"],
+      waitlist_status: ["waiting", "notified", "promoted", "cancelled", "expired"],
     },
   },
 } as const
