@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { checkAvailability, createReservationAction } from '@/app/dashboard/reservations/actions'
+import { checkAvailability, createReservationAction, getPriceEstimate } from '@/app/dashboard/reservations/actions'
 import type { Tables } from '@/lib/database.types'
 
 export function NewReservationForm({ roomTypes }: { roomTypes: Tables<'room_types'>[] }) {
@@ -15,16 +15,27 @@ export function NewReservationForm({ roomTypes }: { roomTypes: Tables<'room_type
   const [checkOut, setCheckOut] = useState('')
   const [availability, setAvailability] = useState<number | null>(null)
   const [checkingAvailability, setCheckingAvailability] = useState(false)
+  const [priceEstimate, setPriceEstimate] = useState<{
+    subtotal: number
+    tax: number
+    total: number
+    nights: number
+  } | null>(null)
 
   async function refreshAvailability(rt: string, ci: string, co: string) {
     if (!rt || !ci || !co || co <= ci) {
       setAvailability(null)
+      setPriceEstimate(null)
       return
     }
     setCheckingAvailability(true)
-    const result = await checkAvailability(rt, ci, co)
+    const [availResult, priceResult] = await Promise.all([
+      checkAvailability(rt, ci, co),
+      getPriceEstimate(rt, ci, co),
+    ])
     setCheckingAvailability(false)
-    setAvailability(result.available ?? 0)
+    setAvailability(availResult.available ?? 0)
+    setPriceEstimate(priceResult)
   }
 
   function handleFieldChange(field: 'roomTypeId' | 'checkIn' | 'checkOut', value: string) {
@@ -50,6 +61,7 @@ export function NewReservationForm({ roomTypes }: { roomTypes: Tables<'room_type
       }
       setSuccess(true)
       setAvailability(null)
+      setPriceEstimate(null)
       setRoomTypeId('')
       setCheckIn('')
       setCheckOut('')
@@ -108,7 +120,7 @@ export function NewReservationForm({ roomTypes }: { roomTypes: Tables<'room_type
             <option value="">Select...</option>
             {roomTypes.map((rt) => (
               <option key={rt.id} value={rt.id}>
-                {rt.name} — {rt.base_rate.toLocaleString()}/night
+                {rt.name}
               </option>
             ))}
           </select>
@@ -122,6 +134,26 @@ export function NewReservationForm({ roomTypes }: { roomTypes: Tables<'room_type
             ? `${availability} room(s) available for these dates`
             : 'No rooms available for these dates'}
         </p>
+      )}
+      {!checkingAvailability && priceEstimate && priceEstimate.nights > 0 && (
+        <div className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-700">
+          <p>
+            {priceEstimate.nights} night(s) — room subtotal:{' '}
+            <span className="font-medium">{priceEstimate.subtotal.toLocaleString()}</span>
+            {priceEstimate.tax > 0 && (
+              <>
+                {' '}
+                + tax: <span className="font-medium">{priceEstimate.tax.toLocaleString()}</span>
+              </>
+            )}
+          </p>
+          <p className="mt-0.5 font-semibold text-gray-900">
+            Total: {priceEstimate.total.toLocaleString()}
+          </p>
+          <p className="mt-0.5 text-[10px] text-gray-400">
+            Reflects any active rate plan for these dates — not just the base rate.
+          </p>
+        </div>
       )}
 
       <div className="border-t border-gray-100 pt-3">

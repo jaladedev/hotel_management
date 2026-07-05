@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac, timingSafeEqual } from 'crypto'
-import { settlePaystackPayment } from '@/lib/paystack'
+import { settlePaystackPayment, settlePaystackRefund } from '@/lib/paystack'
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text()
@@ -35,6 +35,16 @@ export async function POST(request: NextRequest) {
         // Log but still return 200 — Paystack retries on non-2xx, and a
         // reference lookup failure won't fix itself on retry.
         console.error('Paystack settlement error:', result.error)
+      }
+    }
+  }
+
+  if (event.event === 'refund.processed') {
+    const refundReference = event.data?.reference || event.data?.transaction_reference
+    if (refundReference) {
+      const result = await settlePaystackRefund(refundReference)
+      if (result.error) {
+        console.error('Paystack refund settlement error:', result.error)
       }
     }
   }

@@ -6,6 +6,9 @@ import { FolioLedger } from '@/components/folios/folio-ledger'
 import { CashPaymentForm } from '@/components/folios/cash-payment-form'
 import { IncidentalChargeForm } from '@/components/folios/incidental-charge-form'
 import { PaystackPaymentButton } from '@/components/folios/paystack-payment-button'
+import { PrintReceiptButton } from '@/components/folios/print-receipt-button'
+import { SecurityDepositPanel } from '@/components/folios/security-deposit-panel'
+import { RefundsPanel } from '@/components/folios/refunds-panel'
 import { ReservationStatusBadge } from '@/components/reservations/reservation-status-badge'
 
 export default async function FolioDetailPage({
@@ -33,14 +36,27 @@ export default async function FolioDetailPage({
 
   if (!folio) notFound()
 
-  const [{ data: lineItems }, { data: balanceRow }] = await Promise.all([
-    supabase
-      .from('folio_line_items')
-      .select('*')
-      .eq('folio_id', folio.id)
-      .order('created_at'),
-    supabase.from('folio_balances').select('balance').eq('folio_id', folio.id).maybeSingle(),
-  ])
+  const [{ data: lineItems }, { data: balanceRow }, { data: paystackPayments }, { data: refunds }] =
+    await Promise.all([
+      supabase
+        .from('folio_line_items')
+        .select('*')
+        .eq('folio_id', folio.id)
+        .order('created_at'),
+      supabase.from('folio_balances').select('balance').eq('folio_id', folio.id).maybeSingle(),
+      supabase
+        .from('payments')
+        .select('*')
+        .eq('folio_id', folio.id)
+        .eq('method', 'paystack')
+        .eq('status', 'success')
+        .eq('is_security_deposit', false),
+      supabase
+        .from('refunds')
+        .select('*')
+        .eq('folio_id', folio.id)
+        .order('created_at', { ascending: false }),
+    ])
 
   const balance = balanceRow?.balance ?? 0
   const canManage = staff.role === 'admin' || staff.role === 'front_desk'
@@ -84,17 +100,33 @@ export default async function FolioDetailPage({
         </div>
       </div>
 
-      {canManage && folio.status === 'open' && (
-        <div className="flex flex-wrap gap-3">
-          <CashPaymentForm folioId={folio.id} />
-          {balance > 0 && (
-            <PaystackPaymentButton folioId={folio.id} defaultAmount={balance} />
-          )}
-          <IncidentalChargeForm folioId={folio.id} />
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-3">
+        {canManage && folio.status === 'open' && (
+          <>
+            <CashPaymentForm folioId={folio.id} />
+            {balance > 0 && (
+              <PaystackPaymentButton folioId={folio.id} defaultAmount={balance} />
+            )}
+            <IncidentalChargeForm folioId={folio.id} />
+          </>
+        )}
+        <PrintReceiptButton reservationId={reservation.id} />
+      </div>
 
       <FolioLedger lineItems={lineItems || []} balance={balance} />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SecurityDepositPanel
+          folioId={folio.id}
+          status={folio.security_deposit_status}
+          amount={folio.security_deposit_amount}
+        />
+        <RefundsPanel
+          folioId={folio.id}
+          paystackPayments={paystackPayments || []}
+          refunds={refunds || []}
+        />
+      </div>
     </div>
   )
 }

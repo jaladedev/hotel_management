@@ -6,13 +6,15 @@ import {
   cancelReservation,
   checkAvailabilityForEdit,
   updateReservationDetails,
+  updateGuestDetails,
+  getPriceEstimate,
 } from '@/app/dashboard/reservations/actions'
 import { ReservationStatusBadge } from '@/components/reservations/reservation-status-badge'
 import { CheckInOutControl } from '@/components/reservations/check-in-out-control'
 import type { Tables } from '@/lib/database.types'
 
 type ReservationRow = Tables<'reservations'> & {
-  guests: { first_name: string; last_name: string } | null
+  guests: { id: string; first_name: string; last_name: string; email: string | null; phone: string | null } | null
   room_types: { name: string } | null
 }
 
@@ -33,16 +35,27 @@ export function ReservationRow({
   const [checkIn, setCheckIn] = useState(r.check_in)
   const [checkOut, setCheckOut] = useState(r.check_out)
   const [availability, setAvailability] = useState<number | null>(null)
+  const [priceEstimate, setPriceEstimate] = useState<{
+    subtotal: number
+    tax: number
+    total: number
+    nights: number
+  } | null>(null)
 
   const canEdit = ['pending', 'confirmed'].includes(r.status)
 
   async function refreshAvailability(rt: string, ci: string, co: string) {
     if (!rt || !ci || !co || co <= ci) {
       setAvailability(null)
+      setPriceEstimate(null)
       return
     }
-    const result = await checkAvailabilityForEdit(r.id, rt, ci, co)
-    setAvailability(result.available ?? 0)
+    const [availResult, priceResult] = await Promise.all([
+      checkAvailabilityForEdit(r.id, rt, ci, co),
+      getPriceEstimate(rt, ci, co),
+    ])
+    setAvailability(availResult.available ?? 0)
+    setPriceEstimate(priceResult)
   }
 
   function handleCancel() {
@@ -55,9 +68,16 @@ export function ReservationRow({
   function handleSave(formData: FormData) {
     setError(null)
     startTransition(async () => {
-      const result = await updateReservationDetails(r.id, formData)
-      if (result?.error) {
-        setError(result.error)
+      const [reservationResult, guestResult] = await Promise.all([
+        updateReservationDetails(r.id, formData),
+        r.guests ? updateGuestDetails(r.guests.id, formData) : Promise.resolve({ success: true }),
+      ])
+      if (reservationResult?.error) {
+        setError(reservationResult.error)
+        return
+      }
+      if ('error' in guestResult && guestResult.error) {
+        setError(guestResult.error)
         return
       }
       setEditing(false)
@@ -112,10 +132,43 @@ export function ReservationRow({
                 >
                   {roomTypes.map((rt) => (
                     <option key={rt.id} value={rt.id}>
-                      {rt.name} — {rt.base_rate.toLocaleString()}/night
+                      {rt.name}
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 pt-3">
+              <p className="mb-2 text-xs font-medium text-gray-700">Guest details</p>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  name="guest_first_name"
+                  placeholder="First name"
+                  required
+                  defaultValue={r.guests?.first_name}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                />
+                <input
+                  name="guest_last_name"
+                  placeholder="Last name"
+                  required
+                  defaultValue={r.guests?.last_name}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                />
+                <input
+                  name="guest_email"
+                  type="email"
+                  placeholder="Email"
+                  defaultValue={r.guests?.email || ''}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                />
+                <input
+                  name="guest_phone"
+                  placeholder="Phone"
+                  defaultValue={r.guests?.phone || ''}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                />
               </div>
             </div>
 
@@ -123,6 +176,24 @@ export function ReservationRow({
               <p className={`text-xs font-medium ${availability > 0 ? 'text-green-700' : 'text-red-700'}`}>
                 {availability > 0 ? `${availability} room(s) available` : 'No rooms available'}
               </p>
+            )}
+            {priceEstimate && priceEstimate.nights > 0 && (
+              <div className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-700">
+                <p>
+                  {priceEstimate.nights} night(s) — subtotal:{' '}
+                  <span className="font-medium">{priceEstimate.subtotal.toLocaleString()}</span>
+                  {priceEstimate.tax > 0 && (
+                    <>
+                      {' '}
+                      + tax:{' '}
+                      <span className="font-medium">{priceEstimate.tax.toLocaleString()}</span>
+                    </>
+                  )}
+                </p>
+                <p className="mt-0.5 font-semibold text-gray-900">
+                  New total: {priceEstimate.total.toLocaleString()}
+                </p>
+              </div>
             )}
             {error && <p className="text-sm text-red-600">{error}</p>}
 

@@ -107,6 +107,31 @@ export async function createRoom(formData: FormData) {
   return { success: true }
 }
 
+export async function updateRoom(id: string, formData: FormData) {
+  const staff = await getCurrentStaff()
+  if (staff.role !== 'admin' && staff.role !== 'front_desk') {
+    return { error: 'You do not have permission to manage rooms.' }
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('rooms')
+    .update({
+      room_number: String(formData.get('room_number')),
+      floor: String(formData.get('floor') || '') || null,
+      room_type_id: String(formData.get('room_type_id')),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/dashboard/rooms')
+  revalidatePath('/dashboard/rooms/board')
+  return { success: true }
+}
+
 export async function updateRoomStatus(
   id: string,
   status: Enums<'room_status'>,

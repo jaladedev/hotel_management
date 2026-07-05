@@ -35,7 +35,7 @@ export default async function RoomsPage() {
           <h1 className="text-xl font-semibold text-gray-900">Rooms</h1>
           {canManageRooms && <RoomForm roomTypes={roomTypes || []} />}
         </div>
-        <RoomsTable rooms={rooms || []} />
+        <RoomsTable rooms={rooms || []} roomTypes={roomTypes || []} canManage={canManageRooms} />
       </section>
     </div>
   )

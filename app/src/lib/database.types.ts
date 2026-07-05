@@ -75,6 +75,8 @@ export type Database = {
           created_at: string
           id: string
           reservation_id: string
+          security_deposit_amount: number
+          security_deposit_status: string
           status: Database["public"]["Enums"]["folio_status"]
         }
         Insert: {
@@ -82,6 +84,8 @@ export type Database = {
           created_at?: string
           id?: string
           reservation_id: string
+          security_deposit_amount?: number
+          security_deposit_status?: string
           status?: Database["public"]["Enums"]["folio_status"]
         }
         Update: {
@@ -89,6 +93,8 @@ export type Database = {
           created_at?: string
           id?: string
           reservation_id?: string
+          security_deposit_amount?: number
+          security_deposit_status?: string
           status?: Database["public"]["Enums"]["folio_status"]
         }
         Relationships: [
@@ -150,6 +156,7 @@ export type Database = {
           currency: string
           folio_id: string
           id: string
+          is_security_deposit: boolean
           method: Database["public"]["Enums"]["payment_method"]
           paystack_reference: string | null
           recorded_by: string | null
@@ -161,6 +168,7 @@ export type Database = {
           currency?: string
           folio_id: string
           id?: string
+          is_security_deposit?: boolean
           method: Database["public"]["Enums"]["payment_method"]
           paystack_reference?: string | null
           recorded_by?: string | null
@@ -172,6 +180,7 @@ export type Database = {
           currency?: string
           folio_id?: string
           id?: string
+          is_security_deposit?: boolean
           method?: Database["public"]["Enums"]["payment_method"]
           paystack_reference?: string | null
           recorded_by?: string | null
@@ -190,6 +199,101 @@ export type Database = {
             columns: ["recorded_by"]
             isOneToOne: false
             referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rate_plans: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          name: string
+          nightly_rate: number
+          room_type_id: string
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          name: string
+          nightly_rate: number
+          room_type_id: string
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          name?: string
+          nightly_rate?: number
+          room_type_id?: string
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_plans_room_type_id_fkey"
+            columns: ["room_type_id"]
+            isOneToOne: false
+            referencedRelation: "room_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      refunds: {
+        Row: {
+          amount: number
+          created_at: string
+          folio_id: string
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          paystack_refund_reference: string | null
+          payment_id: string | null
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+          status: Database["public"]["Enums"]["refund_status"]
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          folio_id: string
+          id?: string
+          method: Database["public"]["Enums"]["payment_method"]
+          paystack_refund_reference?: string | null
+          payment_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["refund_status"]
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          folio_id?: string
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          paystack_refund_reference?: string | null
+          payment_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+          status?: Database["public"]["Enums"]["refund_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refunds_folio_id_fkey"
+            columns: ["folio_id"]
+            isOneToOne: false
+            referencedRelation: "folios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
         ]
@@ -375,6 +479,33 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          is_inclusive: boolean
+          name: string
+          rate_percent: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_inclusive?: boolean
+          name: string
+          rate_percent: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_inclusive?: boolean
+          name?: string
+          rate_percent?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       folio_balances: {
@@ -394,6 +525,20 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_exclusive_tax: {
+        Args: {
+          p_subtotal: number
+        }
+        Returns: number
+      }
+      calculate_stay_subtotal: {
+        Args: {
+          p_check_in: string
+          p_check_out: string
+          p_room_type_id: string
+        }
+        Returns: number
+      }
       check_availability: {
         Args: {
           p_check_in: string
@@ -452,6 +597,7 @@ export type Database = {
         | "checked_out"
         | "cancelled"
         | "no_show"
+      refund_status: "pending" | "processed" | "failed"
       room_status: "vacant" | "occupied" | "dirty" | "clean" | "out_of_order"
       staff_role: "admin" | "front_desk" | "housekeeping"
     }
@@ -602,6 +748,7 @@ export const Constants = {
         "cancelled",
         "no_show",
       ],
+      refund_status: ["pending", "processed", "failed"],
       room_status: ["vacant", "occupied", "dirty", "clean", "out_of_order"],
       staff_role: ["admin", "front_desk", "housekeeping"],
     },

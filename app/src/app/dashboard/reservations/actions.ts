@@ -4,6 +4,34 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentStaff } from '@/lib/get-current-staff'
 
+export async function getPriceEstimate(roomTypeId: string, checkIn: string, checkOut: string) {
+  if (!roomTypeId || !checkIn || !checkOut || checkOut <= checkIn) {
+    return { subtotal: 0, tax: 0, total: 0, nights: 0 }
+  }
+
+  const supabase = await createClient()
+
+  const { data: subtotal, error: subtotalError } = await supabase.rpc(
+    'calculate_stay_subtotal',
+    { p_room_type_id: roomTypeId, p_check_in: checkIn, p_check_out: checkOut }
+  )
+  if (subtotalError) return { error: subtotalError.message, subtotal: 0, tax: 0, total: 0, nights: 0 }
+
+  const { data: tax } = await supabase.rpc('calculate_exclusive_tax', {
+    p_subtotal: subtotal ?? 0,
+  })
+
+  const nights =
+    (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)
+
+  return {
+    subtotal: subtotal ?? 0,
+    tax: tax ?? 0,
+    total: (subtotal ?? 0) + (tax ?? 0),
+    nights,
+  }
+}
+
 export async function checkAvailability(
   roomTypeId: string,
   checkIn: string,
@@ -80,29 +108,51 @@ export async function createReservationAction(formData: FormData) {
     return { error: guestResult.error || 'Could not resolve guest.' }
   }
 
-  const { data: roomType } = await supabase
-    .from('room_types')
-    .select('base_rate')
-    .eq('id', roomTypeId)
-    .single()
-
-  if (!roomType) return { error: 'Room type not found.' }
+  const { data: subtotal, error: subtotalError } = await supabase.rpc(
+    'calculate_stay_subtotal',
+    { p_room_type_id: roomTypeId, p_check_in: checkIn, p_check_out: checkOut }
+  )
+  if (subtotalError) return { error: subtotalError.message }
 
   const nights =
     (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)
-  const totalAmount = roomType.base_rate * nights
+  const averageNightlyRate = (subtotal ?? 0) / nights
 
   const { data: reservationId, error: rpcError } = await supabase.rpc('create_reservation', {
     p_guest_id: guestResult.guestId,
     p_room_type_id: roomTypeId,
     p_check_in: checkIn,
     p_check_out: checkOut,
-    p_rate_applied: roomType.base_rate,
-    p_total_amount: totalAmount,
+    p_rate_applied: averageNightlyRate,
+    p_total_amount: subtotal ?? 0,
     p_created_by: staff.id,
   })
 
   if (rpcError) return { error: rpcError.message }
+
+  // Tax is applied as its own folio line item, on top of the room_charge
+  // the RPC just created — this keeps the folio ledger itemized rather
+  // than folding tax silently into the room charge.
+  const { data: taxAmount } = await supabase.rpc('calculate_exclusive_tax', {
+    p_subtotal: subtotal ?? 0,
+  })
+
+  if (taxAmount && taxAmount > 0) {
+    const { data: folio } = await supabase
+      .from('folios')
+      .select('id')
+      .eq('reservation_id', reservationId)
+      .single()
+
+    if (folio) {
+      await supabase.from('folio_line_items').insert({
+        folio_id: folio.id,
+        type: 'tax',
+        description: 'Tax',
+        amount: taxAmount,
+      })
+    }
+  }
 
   revalidatePath('/dashboard/reservations')
   return { success: true, reservationId }
@@ -180,17 +230,15 @@ export async function updateReservationDetails(reservationId: string, formData: 
   if (availError) return { error: availError }
   if (available <= 0) return { error: 'No rooms of this type available for the selected dates.' }
 
-  const { data: roomType } = await supabase
-    .from('room_types')
-    .select('base_rate')
-    .eq('id', roomTypeId)
-    .single()
-
-  if (!roomType) return { error: 'Room type not found.' }
+  const { data: subtotal, error: subtotalError } = await supabase.rpc(
+    'calculate_stay_subtotal',
+    { p_room_type_id: roomTypeId, p_check_in: checkIn, p_check_out: checkOut }
+  )
+  if (subtotalError) return { error: subtotalError.message }
 
   const nights =
     (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24)
-  const totalAmount = roomType.base_rate * nights
+  const averageNightlyRate = (subtotal ?? 0) / nights
 
   const { error: updateError } = await supabase
     .from('reservations')
@@ -198,8 +246,8 @@ export async function updateReservationDetails(reservationId: string, formData: 
       room_type_id: roomTypeId,
       check_in: checkIn,
       check_out: checkOut,
-      rate_applied: roomType.base_rate,
-      total_amount: totalAmount,
+      rate_applied: averageNightlyRate,
+      total_amount: subtotal ?? 0,
       room_id: null, // room type may have changed — force re-assignment at check-in
       updated_at: new Date().toISOString(),
     })
@@ -207,8 +255,10 @@ export async function updateReservationDetails(reservationId: string, formData: 
 
   if (updateError) return { error: updateError.message }
 
-  // Reflect the new total on the auto-generated room_charge line item.
-  // Payments already recorded are untouched — only the charge side updates.
+  // Reflect the new subtotal on the auto-generated room_charge line item,
+  // and recompute tax from scratch (delete + reinsert is simpler and safer
+  // than trying to diff old vs new tax rules that may have changed too).
+  // Payments already recorded are untouched — only charge-side items update.
   const { data: folio } = await supabase
     .from('folios')
     .select('id')
@@ -219,12 +269,56 @@ export async function updateReservationDetails(reservationId: string, formData: 
     await supabase
       .from('folio_line_items')
       .update({
-        amount: totalAmount,
+        amount: subtotal ?? 0,
         description: `Room charge: ${nights} nights (updated)`,
       })
       .eq('folio_id', folio.id)
       .eq('type', 'room_charge')
+
+    await supabase
+      .from('folio_line_items')
+      .delete()
+      .eq('folio_id', folio.id)
+      .eq('type', 'tax')
+
+    const { data: taxAmount } = await supabase.rpc('calculate_exclusive_tax', {
+      p_subtotal: subtotal ?? 0,
+    })
+
+    if (taxAmount && taxAmount > 0) {
+      await supabase.from('folio_line_items').insert({
+        folio_id: folio.id,
+        type: 'tax',
+        description: 'Tax',
+        amount: taxAmount,
+      })
+    }
   }
+
+  revalidatePath('/dashboard/reservations')
+  return { success: true }
+}
+
+export async function updateGuestDetails(guestId: string, formData: FormData) {
+  const staff = await getCurrentStaff()
+  if (staff.role !== 'admin' && staff.role !== 'front_desk') {
+    return { error: 'You do not have permission to edit guest details.' }
+  }
+
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('guests')
+    .update({
+      first_name: String(formData.get('guest_first_name')),
+      last_name: String(formData.get('guest_last_name')),
+      email: String(formData.get('guest_email') || '') || null,
+      phone: String(formData.get('guest_phone') || '') || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', guestId)
+
+  if (error) return { error: error.message }
 
   revalidatePath('/dashboard/reservations')
   return { success: true }
@@ -338,6 +432,18 @@ export async function checkOutReservation(reservationId: string) {
   if ((balanceResult.balance ?? 0) > 0) {
     return {
       error: `Outstanding balance of ${balanceResult.balance!.toLocaleString()} must be settled before check-out.`,
+    }
+  }
+
+  const { data: folioForDeposit } = await supabase
+    .from('folios')
+    .select('security_deposit_status')
+    .eq('id', balanceResult.folioId!)
+    .single()
+
+  if (folioForDeposit?.security_deposit_status === 'held') {
+    return {
+      error: 'A security deposit is still held for this stay. Release or charge it before checking out.',
     }
   }
 

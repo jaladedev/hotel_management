@@ -5,12 +5,14 @@ import { SignOutButton } from '@/components/layout/sign-out-button'
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', roles: ['admin', 'front_desk', 'housekeeping'] },
   { href: '/dashboard/reservations', label: 'Reservations', roles: ['admin', 'front_desk'] },
+  { href: '/dashboard/reservations/calendar', label: 'Calendar', roles: ['admin', 'front_desk'] },
   { href: '/dashboard/rooms/board', label: 'Room Board', roles: ['admin', 'front_desk', 'housekeeping'] },
   { href: '/dashboard/rooms', label: 'Rooms', roles: ['admin', 'front_desk', 'housekeeping'] },
   { href: '/dashboard/folios', label: 'Folios', roles: ['admin', 'front_desk'] },
   { href: '/dashboard/housekeeping', label: 'Housekeeping', roles: ['admin', 'housekeeping'] },
   { href: '/dashboard/reports', label: 'Reports', roles: ['admin'] },
   { href: '/dashboard/admin', label: 'Admin', roles: ['admin'] },
+  { href: '/dashboard/admin/rates', label: 'Rates & Tax', roles: ['admin'] },
 ] as const
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
