@@ -601,7 +601,7 @@ export type Database = {
         Args: {
           p_check_in: string
           p_check_out: string
-          p_created_by: string
+          p_created_by: string | null
           p_guest_id: string
           p_rate_applied: number
           p_room_type_id: string
