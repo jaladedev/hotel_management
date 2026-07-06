@@ -45,37 +45,37 @@ export default async function GroupDetailPage({
     <div className="space-y-6">
       <Link
         href="/dashboard/groups"
-        className="text-xs font-medium text-gray-500 hover:text-gray-700"
+        className="text-xs font-medium text-ink-soft hover:text-indigo-700"
       >
         ← Back to groups
       </Link>
 
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">{group.name}</h1>
-        <p className="text-sm text-gray-600">
+        <h1 className="text-xl font-display font-medium text-ink">{group.name}</h1>
+        <p className="text-sm text-ink-soft">
           Primary contact: {group.guests?.first_name} {group.guests?.last_name}
           {group.guests?.email && ` — ${group.guests.email}`}
         </p>
-        {group.notes && <p className="mt-1 text-sm text-gray-500">{group.notes}</p>}
+        {group.notes && <p className="mt-1 text-sm text-ink-soft">{group.notes}</p>}
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <p className="text-xs text-gray-500">Combined balance across all rooms</p>
+      <div className="rounded-lg border border-rule bg-white p-4">
+        <p className="text-xs text-ink-soft">Combined balance across all rooms</p>
         <p
           className={`mt-1 text-xl font-semibold ${
-            groupTotalBalance > 0 ? 'text-red-700' : 'text-green-700'
+            groupTotalBalance > 0 ? 'text-status-bad' : 'text-status-good'
           }`}
         >
           {groupTotalBalance.toLocaleString()}
         </p>
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-ink-soft/60">
           Each room keeps its own folio — this is a combined view, not a merged bill. Settle
           balances individually from each room&apos;s folio page.
         </p>
       </div>
 
-      <table className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white text-sm">
-        <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+      <table className="w-full overflow-hidden rounded-lg border border-rule bg-white text-sm">
+        <thead className="bg-paper-dim text-left text-xs font-medium uppercase text-ink-soft">
           <tr>
             <th className="px-4 py-2">Room Type</th>
             <th className="px-4 py-2">Check-in</th>
@@ -85,25 +85,25 @@ export default async function GroupDetailPage({
             <th className="px-4 py-2"></th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-rule/60">
           {(reservations || []).map((r) => {
             const folioId = r.folios?.id
             const balance = folioId ? balanceByFolioId.get(folioId) ?? 0 : 0
             return (
               <tr key={r.id}>
-                <td className="px-4 py-2 text-gray-700">{r.room_types?.name || '—'}</td>
-                <td className="px-4 py-2 text-gray-600">{r.check_in}</td>
-                <td className="px-4 py-2 text-gray-600">{r.check_out}</td>
+                <td className="px-4 py-2 text-ink-soft">{r.room_types?.name || '—'}</td>
+                <td className="px-4 py-2 text-ink-soft">{r.check_in}</td>
+                <td className="px-4 py-2 text-ink-soft">{r.check_out}</td>
                 <td className="px-4 py-2">
                   <ReservationStatusBadge status={r.status} />
                 </td>
-                <td className={`px-4 py-2 ${balance > 0 ? 'text-red-700' : 'text-green-700'}`}>
+                <td className={`px-4 py-2 ${balance > 0 ? 'text-status-bad' : 'text-status-good'}`}>
                   {balance.toLocaleString()}
                 </td>
                 <td className="px-4 py-2">
                   <Link
                     href={`/dashboard/folios/${r.id}`}
-                    className="text-xs font-medium text-blue-700 hover:text-blue-900"
+                    className="text-xs font-medium text-indigo-700 hover:text-indigo-800"
                   >
                     View folio
                   </Link>
@@ -113,7 +113,7 @@ export default async function GroupDetailPage({
           })}
           {(reservations || []).length === 0 && (
             <tr>
-              <td colSpan={6} className="px-4 py-6 text-center text-gray-400">
+              <td colSpan={6} className="px-4 py-6 text-center text-ink-soft/60">
                 No rooms in this group.
               </td>
             </tr>

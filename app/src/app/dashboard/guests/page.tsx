@@ -24,25 +24,25 @@ export default async function GuestsPage({
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold text-gray-900">Guests</h1>
+      <h1 className="mb-4 text-xl font-display font-medium text-ink">Guests</h1>
 
       <form className="mb-4 flex gap-3" method="get">
         <input
           name="q"
           placeholder="Search by name, email, or phone..."
           defaultValue={params.q || ''}
-          className="w-72 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="w-72 rounded-md border border-rule px-3 py-1.5 text-sm"
         />
         <button
           type="submit"
-          className="rounded-md bg-gray-100 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
+          className="rounded-md bg-paper-dim px-4 py-1.5 text-sm font-medium text-ink-soft hover:bg-rule/50"
         >
           Search
         </button>
       </form>
 
-      <table className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white text-sm">
-        <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+      <table className="w-full overflow-hidden rounded-lg border border-rule bg-white text-sm">
+        <thead className="bg-paper-dim text-left text-xs font-medium uppercase text-ink-soft">
           <tr>
             <th className="px-4 py-2">Name</th>
             <th className="px-4 py-2">Email</th>
@@ -51,17 +51,17 @@ export default async function GuestsPage({
             <th className="px-4 py-2"></th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-rule/60">
           {(guests || []).map((g) => (
             <tr key={g.id}>
-              <td className="px-4 py-2 font-medium text-gray-900">
+              <td className="px-4 py-2 font-medium text-ink">
                 {g.first_name} {g.last_name}
               </td>
-              <td className="px-4 py-2 text-gray-600">{g.email || '—'}</td>
-              <td className="px-4 py-2 text-gray-600">{g.phone || '—'}</td>
+              <td className="px-4 py-2 text-ink-soft">{g.email || '—'}</td>
+              <td className="px-4 py-2 text-ink-soft">{g.phone || '—'}</td>
               <td className="px-4 py-2">
                 {g.is_repeat_guest && (
-                  <span className="inline-block rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800">
+                  <span className="inline-block rounded-full bg-brass-100 px-2 py-0.5 text-xs font-medium text-brass-700">
                     Repeat
                   </span>
                 )}
@@ -69,7 +69,7 @@ export default async function GuestsPage({
               <td className="px-4 py-2">
                 <Link
                   href={`/dashboard/guests/${g.id}`}
-                  className="text-xs font-medium text-blue-700 hover:text-blue-900"
+                  className="text-xs font-medium text-indigo-700 hover:text-indigo-800"
                 >
                   View profile
                 </Link>
@@ -78,7 +78,7 @@ export default async function GuestsPage({
           ))}
           {(guests || []).length === 0 && (
             <tr>
-              <td colSpan={5} className="px-4 py-6 text-center text-gray-400">
+              <td colSpan={5} className="px-4 py-6 text-center text-ink-soft/60">
                 No guests found.
               </td>
             </tr>

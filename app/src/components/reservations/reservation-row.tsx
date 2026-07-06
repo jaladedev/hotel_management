@@ -87,11 +87,11 @@ export function ReservationRow({
   if (editing) {
     return (
       <tr>
-        <td colSpan={canManage ? 7 : 6} className="bg-gray-50 px-4 py-3">
+        <td colSpan={canManage ? 7 : 6} className="bg-paper-dim px-4 py-3">
           <form action={handleSave} className="space-y-3">
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-700">Check-in</label>
+                <label className="mb-1 block text-xs font-medium text-ink-soft">Check-in</label>
                 <input
                   name="check_in"
                   type="date"
@@ -101,11 +101,11 @@ export function ReservationRow({
                     setCheckIn(e.target.value)
                     refreshAvailability(roomTypeId, e.target.value, checkOut)
                   }}
-                  className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="w-full rounded-md border border-rule px-3 py-1.5 text-sm"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-700">Check-out</label>
+                <label className="mb-1 block text-xs font-medium text-ink-soft">Check-out</label>
                 <input
                   name="check_out"
                   type="date"
@@ -115,11 +115,11 @@ export function ReservationRow({
                     setCheckOut(e.target.value)
                     refreshAvailability(roomTypeId, checkIn, e.target.value)
                   }}
-                  className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="w-full rounded-md border border-rule px-3 py-1.5 text-sm"
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-700">Room Type</label>
+                <label className="mb-1 block text-xs font-medium text-ink-soft">Room Type</label>
                 <select
                   name="room_type_id"
                   required
@@ -128,7 +128,7 @@ export function ReservationRow({
                     setRoomTypeId(e.target.value)
                     refreshAvailability(e.target.value, checkIn, checkOut)
                   }}
-                  className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="w-full rounded-md border border-rule px-3 py-1.5 text-sm"
                 >
                   {roomTypes.map((rt) => (
                     <option key={rt.id} value={rt.id}>
@@ -139,46 +139,46 @@ export function ReservationRow({
               </div>
             </div>
 
-            <div className="border-t border-gray-100 pt-3">
-              <p className="mb-2 text-xs font-medium text-gray-700">Guest details</p>
+            <div className="border-t border-rule pt-3">
+              <p className="mb-2 text-xs font-medium text-ink-soft">Guest details</p>
               <div className="grid grid-cols-2 gap-3">
                 <input
                   name="guest_first_name"
                   placeholder="First name"
                   required
                   defaultValue={r.guests?.first_name}
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="rounded-md border border-rule px-3 py-1.5 text-sm"
                 />
                 <input
                   name="guest_last_name"
                   placeholder="Last name"
                   required
                   defaultValue={r.guests?.last_name}
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="rounded-md border border-rule px-3 py-1.5 text-sm"
                 />
                 <input
                   name="guest_email"
                   type="email"
                   placeholder="Email"
                   defaultValue={r.guests?.email || ''}
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="rounded-md border border-rule px-3 py-1.5 text-sm"
                 />
                 <input
                   name="guest_phone"
                   placeholder="Phone"
                   defaultValue={r.guests?.phone || ''}
-                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                  className="rounded-md border border-rule px-3 py-1.5 text-sm"
                 />
               </div>
             </div>
 
             {availability !== null && (
-              <p className={`text-xs font-medium ${availability > 0 ? 'text-green-700' : 'text-red-700'}`}>
+              <p className={`text-xs font-medium ${availability > 0 ? 'text-status-good' : 'text-status-bad'}`}>
                 {availability > 0 ? `${availability} room(s) available` : 'No rooms available'}
               </p>
             )}
             {priceEstimate && priceEstimate.nights > 0 && (
-              <div className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-700">
+              <div className="rounded-md bg-paper-dim px-3 py-2 text-xs text-ink-soft">
                 <p>
                   {priceEstimate.nights} night(s) — subtotal:{' '}
                   <span className="font-medium">{priceEstimate.subtotal.toLocaleString()}</span>
@@ -190,14 +190,14 @@ export function ReservationRow({
                     </>
                   )}
                 </p>
-                <p className="mt-0.5 font-semibold text-gray-900">
+                <p className="mt-0.5 font-semibold text-ink">
                   New total: {priceEstimate.total.toLocaleString()}
                 </p>
               </div>
             )}
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-status-bad">{error}</p>}
 
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-ink-soft">
               Note: changing room type clears the assigned physical room — it will need
               re-assignment at check-in.
             </p>
@@ -206,14 +206,14 @@ export function ReservationRow({
               <button
                 type="submit"
                 disabled={isPending || (availability !== null && availability <= 0)}
-                className="rounded-md bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                className="rounded-md bg-indigo-700 px-4 py-1.5 text-sm font-medium text-paper hover:bg-indigo-800 disabled:opacity-50"
               >
                 {isPending ? 'Saving...' : 'Save'}
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="rounded-md px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+                className="rounded-md px-4 py-1.5 text-sm font-medium text-ink-soft hover:bg-paper-dim"
               >
                 Cancel
               </button>
@@ -226,13 +226,13 @@ export function ReservationRow({
 
   return (
     <tr>
-      <td className="px-4 py-2 font-medium text-gray-900">
+      <td className="px-4 py-2 font-medium text-ink">
         {r.guests ? `${r.guests.first_name} ${r.guests.last_name}` : '—'}
       </td>
-      <td className="px-4 py-2 text-gray-600">{r.room_types?.name || '—'}</td>
-      <td className="px-4 py-2 text-gray-600">{r.check_in}</td>
-      <td className="px-4 py-2 text-gray-600">{r.check_out}</td>
-      <td className="px-4 py-2 text-gray-600">{r.total_amount.toLocaleString()}</td>
+      <td className="px-4 py-2 text-ink-soft">{r.room_types?.name || '—'}</td>
+      <td className="px-4 py-2 text-ink-soft">{r.check_in}</td>
+      <td className="px-4 py-2 text-ink-soft">{r.check_out}</td>
+      <td className="px-4 py-2 text-ink-soft">{r.total_amount.toLocaleString()}</td>
       <td className="px-4 py-2">
         <ReservationStatusBadge status={r.status} />
       </td>
@@ -241,7 +241,7 @@ export function ReservationRow({
           <div className="flex flex-col gap-1">
             <Link
               href={`/dashboard/folios/${r.id}`}
-              className="text-xs font-medium text-blue-700 hover:text-blue-900"
+              className="text-xs font-medium text-indigo-700 hover:text-indigo-800"
             >
               View folio
             </Link>
@@ -249,7 +249,7 @@ export function ReservationRow({
             {canEdit && (
               <button
                 onClick={() => setEditing(true)}
-                className="text-left text-xs font-medium text-gray-600 hover:text-gray-900"
+                className="text-left text-xs font-medium text-ink-soft hover:text-ink"
               >
                 Edit
               </button>
@@ -258,7 +258,7 @@ export function ReservationRow({
               <button
                 disabled={isPending}
                 onClick={handleCancel}
-                className="text-left text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+                className="text-left text-xs font-medium text-status-bad hover:text-status-bad disabled:opacity-50"
               >
                 Cancel
               </button>

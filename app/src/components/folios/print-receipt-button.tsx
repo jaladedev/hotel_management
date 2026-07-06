@@ -12,7 +12,7 @@ export function PrintReceiptButton({ reservationId }: { reservationId: string })
   return (
     <button
       onClick={handlePrint}
-      className="rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200"
+      className="rounded-md bg-paper-dim px-3 py-1.5 text-xs font-medium text-ink-soft hover:bg-rule/50"
     >
       Print receipt
     </button>

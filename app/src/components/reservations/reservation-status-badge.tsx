@@ -1,12 +1,12 @@
 import type { Enums } from '@/lib/database.types'
 
 const RESERVATION_STATUS_STYLES: Record<Enums<'reservation_status'>, string> = {
-  pending: 'bg-gray-100 text-gray-700',
-  confirmed: 'bg-blue-100 text-blue-800',
-  checked_in: 'bg-green-100 text-green-800',
-  checked_out: 'bg-gray-200 text-gray-600',
-  cancelled: 'bg-red-100 text-red-800',
-  no_show: 'bg-amber-100 text-amber-800',
+  pending: 'bg-status-neutral-bg text-status-neutral',
+  confirmed: 'bg-status-info-bg text-status-info',
+  checked_in: 'bg-status-good-bg text-status-good',
+  checked_out: 'bg-paper-dim text-ink-soft',
+  cancelled: 'bg-status-bad-bg text-status-bad',
+  no_show: 'bg-status-warn-bg text-status-warn',
 }
 
 export function ReservationStatusBadge({ status }: { status: Enums<'reservation_status'> }) {

@@ -38,14 +38,14 @@ export function CashReconciliationForm({
       <input type="hidden" name="date" value={date} />
       <input type="hidden" name="expected_cash" value={expectedCash} />
 
-      <p className="text-xs text-gray-600">
+      <p className="text-xs text-ink-soft">
         Expected cash from today&apos;s payments:{' '}
-        <span className="font-semibold text-gray-900">{expectedCash.toLocaleString()}</span>
+        <span className="font-semibold text-ink">{expectedCash.toLocaleString()}</span>
       </p>
 
       <div className="flex items-end gap-2">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">Counted cash</label>
+          <label className="mb-1 block text-xs font-medium text-ink-soft">Counted cash</label>
           <input
             name="counted_cash"
             type="number"
@@ -53,21 +53,21 @@ export function CashReconciliationForm({
             required
             value={countedCash}
             onChange={(e) => setCountedCash(e.target.value)}
-            className="w-36 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="w-36 rounded-md border border-rule px-3 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">Notes</label>
+          <label className="mb-1 block text-xs font-medium text-ink-soft">Notes</label>
           <input
             name="notes"
             defaultValue={existing?.notes || ''}
-            className="w-48 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="w-48 rounded-md border border-rule px-3 py-1.5 text-sm"
           />
         </div>
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+          className="rounded-md bg-indigo-700 px-3 py-1.5 text-xs font-medium text-paper hover:bg-indigo-800 disabled:opacity-50"
         >
           {isPending ? 'Saving...' : existing ? 'Update' : 'Record'}
         </button>
@@ -76,7 +76,7 @@ export function CashReconciliationForm({
       {variance !== null && (
         <p
           className={`text-xs font-medium ${
-            variance === 0 ? 'text-green-700' : Math.abs(variance) < 100 ? 'text-amber-700' : 'text-red-700'
+            variance === 0 ? 'text-status-good' : Math.abs(variance) < 100 ? 'text-status-warn' : 'text-status-bad'
           }`}
         >
           Variance: {variance > 0 ? '+' : ''}
@@ -84,8 +84,8 @@ export function CashReconciliationForm({
         </p>
       )}
 
-      {error && <p className="text-xs text-red-600">{error}</p>}
-      {success && <p className="text-xs text-green-700">Reconciliation saved.</p>}
+      {error && <p className="text-xs text-status-bad">{error}</p>}
+      {success && <p className="text-xs text-status-good">Reconciliation saved.</p>}
     </form>
   )
 }

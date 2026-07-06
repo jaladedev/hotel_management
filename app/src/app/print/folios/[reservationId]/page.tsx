@@ -45,69 +45,82 @@ export default async function FolioPrintPage({
     : 'Unknown guest'
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', padding: '2rem', color: '#111' }}>
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Folio Receipt</h1>
-        <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '1.5rem' }}>
-          Generated {new Date().toLocaleString()}
-        </p>
+    <div className="min-h-screen bg-paper px-8 py-10 text-ink print:bg-white print:py-0">
+      <div className="mx-auto max-w-xl">
+        <div className="mb-6 flex items-start justify-between border-b-2 border-brass-500 pb-4">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-brass-600">
+              Guest Folio
+            </p>
+            <h1 className="font-display text-2xl font-medium text-ink">Receipt</h1>
+          </div>
+          <p className="pt-1 text-right font-mono text-xs text-ink-soft">
+            {new Date().toLocaleString()}
+          </p>
+        </div>
 
-        <table style={{ width: '100%', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+        <table className="mb-6 w-full text-sm">
           <tbody>
             <tr>
-              <td style={{ fontWeight: 600, paddingRight: '1rem' }}>Guest</td>
-              <td>{guestName}</td>
+              <td className="w-32 py-0.5 font-medium text-ink-soft">Guest</td>
+              <td className="py-0.5 text-ink">{guestName}</td>
             </tr>
             {reservation.guests?.email && (
               <tr>
-                <td style={{ fontWeight: 600 }}>Email</td>
-                <td>{reservation.guests.email}</td>
+                <td className="py-0.5 font-medium text-ink-soft">Email</td>
+                <td className="py-0.5 text-ink">{reservation.guests.email}</td>
               </tr>
             )}
             {reservation.guests?.phone && (
               <tr>
-                <td style={{ fontWeight: 600 }}>Phone</td>
-                <td>{reservation.guests.phone}</td>
+                <td className="py-0.5 font-medium text-ink-soft">Phone</td>
+                <td className="py-0.5 text-ink">{reservation.guests.phone}</td>
               </tr>
             )}
             <tr>
-              <td style={{ fontWeight: 600 }}>Room</td>
-              <td>
+              <td className="py-0.5 font-medium text-ink-soft">Room</td>
+              <td className="py-0.5 text-ink">
                 {reservation.room_types?.name}
                 {reservation.rooms?.room_number ? ` — Room ${reservation.rooms.room_number}` : ''}
               </td>
             </tr>
             <tr>
-              <td style={{ fontWeight: 600 }}>Stay</td>
-              <td>
+              <td className="py-0.5 font-medium text-ink-soft">Stay</td>
+              <td className="py-0.5 font-mono text-ink">
                 {reservation.check_in} to {reservation.check_out}
               </td>
             </tr>
             <tr>
-              <td style={{ fontWeight: 600 }}>Status</td>
-              <td style={{ textTransform: 'capitalize' }}>
+              <td className="py-0.5 font-medium text-ink-soft">Status</td>
+              <td className="py-0.5 capitalize text-ink">
                 {reservation.status.replace(/_/g, ' ')}
+              </td>
+            </tr>
+            <tr>
+              <td className="py-0.5 align-top font-medium text-ink-soft">Reference</td>
+              <td className="py-0.5">
+                <span className="ledger-stamp break-all">{reservation.id}</span>
               </td>
             </tr>
           </tbody>
         </table>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+        <table className="w-full border-collapse text-sm">
           <thead>
-            <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-              <th style={{ padding: '0.4rem 0' }}>Date</th>
-              <th>Description</th>
-              <th style={{ textAlign: 'right' }}>Amount</th>
+            <tr className="border-b-2 border-rule text-left">
+              <th className="py-1.5 font-medium text-ink-soft">Date</th>
+              <th className="py-1.5 font-medium text-ink-soft">Description</th>
+              <th className="py-1.5 text-right font-medium text-ink-soft">Amount</th>
             </tr>
           </thead>
           <tbody>
             {(lineItems || []).map((item) => (
-              <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '0.4rem 0', color: '#666' }}>
+              <tr key={item.id} className="border-b border-rule">
+                <td className="py-1.5 font-mono text-xs text-ink-soft">
                   {new Date(item.created_at).toLocaleDateString()}
                 </td>
-                <td>{item.description}</td>
-                <td style={{ textAlign: 'right' }}>
+                <td className="py-1.5 text-ink">{item.description}</td>
+                <td className="py-1.5 text-right font-mono text-ink">
                   {item.amount < 0 ? '-' : ''}
                   {Math.abs(item.amount).toLocaleString()}
                 </td>
@@ -115,20 +128,18 @@ export default async function FolioPrintPage({
             ))}
           </tbody>
           <tfoot>
-            <tr style={{ borderTop: '2px solid #ddd' }}>
-              <td colSpan={2} style={{ padding: '0.5rem 0', fontWeight: 700, textAlign: 'right' }}>
+            <tr className="border-t-2 border-brass-500">
+              <td colSpan={2} className="py-2 text-right font-medium text-ink">
                 Balance due
               </td>
-              <td style={{ padding: '0.5rem 0', fontWeight: 700, textAlign: 'right' }}>
+              <td className="py-2 text-right font-mono text-base font-semibold text-ink">
                 {balance.toLocaleString()}
               </td>
             </tr>
           </tfoot>
         </table>
 
-        <p style={{ marginTop: '2rem', fontSize: '0.75rem', color: '#999' }}>
-          Thank you for staying with us.
-        </p>
+        <p className="mt-8 text-center text-xs text-ink-soft">Thank you for staying with us.</p>
       </div>
     </div>
   )

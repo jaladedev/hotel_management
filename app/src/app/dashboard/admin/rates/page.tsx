@@ -25,10 +25,10 @@ export default async function RatesAndTaxPage() {
     <div className="space-y-10">
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">Rate Plans</h1>
+          <h1 className="text-xl font-display font-medium text-ink">Rate Plans</h1>
           <RatePlanForm roomTypes={roomTypes || []} />
         </div>
-        <p className="mb-4 text-xs text-gray-500">
+        <p className="mb-4 text-xs text-ink-soft">
           Seasonal or date-range overrides. For any night not covered by a rate plan, the room
           type&apos;s base rate applies.
         </p>
@@ -37,10 +37,10 @@ export default async function RatesAndTaxPage() {
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">Tax Rules</h1>
+          <h1 className="text-xl font-display font-medium text-ink">Tax Rules</h1>
           <TaxRuleForm />
         </div>
-        <p className="mb-4 text-xs text-gray-500">
+        <p className="mb-4 text-xs text-ink-soft">
           Inclusive taxes are already baked into nightly rates and shown for reporting only —
           they are not charged again. Exclusive taxes are added on top of the room subtotal at
           booking time.

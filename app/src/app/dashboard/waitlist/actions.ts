@@ -4,6 +4,61 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentStaff } from '@/lib/get-current-staff'
 
+export async function sendPendingWaitlistNotifications() {
+  const staff = await getCurrentStaff()
+  if (staff.role !== 'admin' && staff.role !== 'front_desk') {
+    return { error: 'You do not have permission to send waitlist notifications.' }
+  }
+
+  const supabase = await createClient()
+
+  const { data: pending } = await supabase
+    .from('waitlist_entries')
+    .select('id, check_in, check_out, guests(first_name, email), room_types(name)')
+    .eq('status', 'notified')
+    .is('notified_at', null)
+
+  if (!pending || pending.length === 0) {
+    return { success: true, count: 0 }
+  }
+
+  const { waitlistAvailabilityEmail, sendEmail } = await import('@/lib/email')
+
+  let sentCount = 0
+  let failedCount = 0
+
+  for (const entry of pending) {
+    if (!entry.guests?.email) continue
+
+    const result = await sendEmail(
+      entry.guests.email,
+      'A room may be available for your dates',
+      waitlistAvailabilityEmail({
+        guestName: entry.guests.first_name,
+        roomTypeName: entry.room_types?.name || 'your requested room',
+        checkIn: entry.check_in,
+        checkOut: entry.check_out,
+      })
+    )
+
+    // Only stamp notified_at when the send actually succeeded (or was
+    // intentionally skipped due to missing config). A real failure leaves
+    // notified_at null so it's retried next run.
+    if (result.success || result.skipped) {
+      await supabase
+        .from('waitlist_entries')
+        .update({ notified_at: new Date().toISOString() })
+        .eq('id', entry.id)
+      sentCount++
+    } else {
+      failedCount++
+    }
+  }
+
+  revalidatePath('/dashboard/waitlist')
+  return { success: true, count: sentCount, failed: failedCount }
+}
+
 export async function promoteWaitlistEntry(waitlistId: string) {
   const staff = await getCurrentStaff()
   if (staff.role !== 'admin' && staff.role !== 'front_desk') {
@@ -58,7 +113,26 @@ export async function promoteWaitlistEntry(waitlistId: string) {
     .from('waitlist_entries')
     .update({ status: 'promoted', promoted_reservation_id: reservationId })
     .eq('id', waitlistId)
-  if (updateError) return { error: updateError.message }
+
+  // If the reservation was created but we couldn't update the waitlist
+  // entry, roll the reservation back rather than leaving a phantom booking
+  // with no waitlist record pointing to it.
+  if (updateError) {
+    const { error: rollbackError } = await supabase
+      .from('reservations')
+      .update({ status: 'cancelled' })
+      .eq('id', reservationId)
+
+    if (rollbackError) {
+      return {
+        error: `Reservation ${reservationId} was created but the waitlist entry ` +
+          `could not be updated, and automatic rollback also failed. ` +
+          `Manual reconciliation required. (${updateError.message})`,
+      }
+    }
+
+    return { error: `Could not finalize promotion, reservation was rolled back: ${updateError.message}` }
+  }
 
   revalidatePath('/dashboard/waitlist')
   return { success: true, reservationId }
@@ -101,30 +175,27 @@ export async function addWaitlistEntry(formData: FormData) {
   if (!roomTypeId || !checkIn || !checkOut) return { error: 'Room type and dates are required.' }
   if (checkOut <= checkIn) return { error: 'Check-out must be after check-in.' }
 
-  const { data: existingGuest } = await supabase
+  // Atomic upsert on email closes the check-then-insert race where two
+  // concurrent submissions for the same new email could create duplicate
+  // guest rows. Requires a unique constraint on guests.email.
+  const { data: guest, error: guestError } = await supabase
     .from('guests')
-    .select('id')
-    .eq('email', email)
-    .maybeSingle()
-
-  let guestId = existingGuest?.id
-  if (!guestId) {
-    const { data: newGuest, error: guestError } = await supabase
-      .from('guests')
-      .insert({
+    .upsert(
+      {
+        email,
         first_name: firstName,
         last_name: lastName,
-        email,
         phone: String(formData.get('guest_phone') || '') || null,
-      })
-      .select('id')
-      .single()
-    if (guestError || !newGuest) return { error: guestError?.message || 'Could not save guest.' }
-    guestId = newGuest.id
-  }
+      },
+      { onConflict: 'email', ignoreDuplicates: false }
+    )
+    .select('id')
+    .single()
+
+  if (guestError || !guest) return { error: guestError?.message || 'Could not save guest.' }
 
   const { error } = await supabase.from('waitlist_entries').insert({
-    guest_id: guestId,
+    guest_id: guest.id,
     room_type_id: roomTypeId,
     check_in: checkIn,
     check_out: checkOut,

@@ -24,7 +24,7 @@ export default async function RoomsPage() {
     <div className="space-y-10">
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">Room Types</h1>
+          <h1 className="text-xl font-display font-medium text-ink">Room Types</h1>
           {canManageRoomTypes && <RoomTypeForm />}
         </div>
         <RoomTypesTable roomTypes={roomTypes || []} canManage={canManageRoomTypes} />
@@ -32,7 +32,7 @@ export default async function RoomsPage() {
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-gray-900">Rooms</h1>
+          <h1 className="text-xl font-display font-medium text-ink">Rooms</h1>
           {canManageRooms && <RoomForm roomTypes={roomTypes || []} />}
         </div>
         <RoomsTable rooms={rooms || []} roomTypes={roomTypes || []} canManage={canManageRooms} />

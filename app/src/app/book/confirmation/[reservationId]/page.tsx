@@ -20,37 +20,43 @@ export default async function BookingConfirmationPage({
   const r = result.reservation
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10">
+    <div className="min-h-screen bg-paper px-6 py-10">
       <div className="mx-auto max-w-md text-center">
-        <h1 className="text-2xl font-semibold text-green-700">Booking Confirmed</h1>
-        <p className="mt-2 text-sm text-gray-600">
+        <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-status-good">
+          Confirmed
+        </p>
+        <h1 className="font-display text-2xl font-medium text-ink">Booking Confirmed</h1>
+        <p className="mt-2 text-sm text-ink-soft">
           A confirmation has been sent to {r.guests?.email}.
         </p>
 
-        <div className="mt-6 rounded-lg border border-gray-200 p-5 text-left text-sm">
+        <div className="mt-6 rounded-lg border border-rule bg-white p-5 text-left text-sm">
           <p className="mb-1">
-            <span className="font-medium text-gray-700">Room:</span> {r.room_types?.name}
-          </p>
-          <p className="mb-1">
-            <span className="font-medium text-gray-700">Check-in:</span> {r.check_in}
+            <span className="font-medium text-ink-soft">Room:</span>{' '}
+            <span className="text-ink">{r.room_types?.name}</span>
           </p>
           <p className="mb-1">
-            <span className="font-medium text-gray-700">Check-out:</span> {r.check_out}
+            <span className="font-medium text-ink-soft">Check-in:</span>{' '}
+            <span className="font-mono text-ink">{r.check_in}</span>
           </p>
           <p className="mb-1">
-            <span className="font-medium text-gray-700">Total:</span>{' '}
-            {r.total_amount.toLocaleString()}
+            <span className="font-medium text-ink-soft">Check-out:</span>{' '}
+            <span className="font-mono text-ink">{r.check_out}</span>
           </p>
-          <p className="mt-3 text-xs text-gray-500">
-            Booking reference (keep this to manage your booking):
-            <br />
-            <span className="break-all font-mono text-gray-700">{r.id}</span>
+          <p className="mb-4">
+            <span className="font-medium text-ink-soft">Total:</span>{' '}
+            <span className="font-mono text-ink">{r.total_amount.toLocaleString()}</span>
           </p>
+
+          <p className="mb-2 text-xs text-ink-soft">
+            Booking reference — keep this to manage your booking:
+          </p>
+          <span className="ledger-stamp break-all">{r.id}</span>
         </div>
 
         <Link
           href="/"
-          className="mt-6 inline-block rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+          className="mt-6 inline-block rounded-md bg-indigo-700 px-4 py-2 text-sm font-medium text-paper hover:bg-indigo-800"
         >
           Back to home
         </Link>

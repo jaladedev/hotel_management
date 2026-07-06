@@ -88,12 +88,12 @@ export function CheckInOutControl({
     return (
       <div className="space-y-1.5">
         {loadingRooms ? (
-          <p className="text-xs text-gray-500">Loading rooms...</p>
+          <p className="text-xs text-ink-soft">Loading rooms...</p>
         ) : (
           <select
             value={selectedRoom}
             onChange={(e) => setSelectedRoom(e.target.value)}
-            className="rounded-md border border-gray-300 px-2 py-1 text-xs"
+            className="rounded-md border border-rule px-2 py-1 text-xs"
           >
             <option value="">Assign room...</option>
             {rooms.map((r) => (
@@ -103,18 +103,18 @@ export function CheckInOutControl({
             ))}
           </select>
         )}
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        {error && <p className="text-xs text-status-bad">{error}</p>}
         <div className="flex gap-2">
           <button
             disabled={isPending || !selectedRoom}
             onClick={handleCheckIn}
-            className="text-xs font-medium text-green-700 hover:text-green-900 disabled:opacity-50"
+            className="text-xs font-medium text-status-good hover:opacity-90 disabled:opacity-50"
           >
             {isPending ? 'Checking in...' : 'Confirm check-in'}
           </button>
           <button
             onClick={() => setMode('closed')}
-            className="text-xs font-medium text-gray-500 hover:text-gray-700"
+            className="text-xs font-medium text-ink-soft hover:text-indigo-700"
           >
             Cancel
           </button>
@@ -127,24 +127,24 @@ export function CheckInOutControl({
     return (
       <div className="space-y-1.5">
         {loadingBalance ? (
-          <p className="text-xs text-gray-500">Loading balance...</p>
+          <p className="text-xs text-ink-soft">Loading balance...</p>
         ) : (
-          <p className={`text-xs font-medium ${(balance ?? 0) > 0 ? 'text-red-700' : 'text-green-700'}`}>
+          <p className={`text-xs font-medium ${(balance ?? 0) > 0 ? 'text-status-bad' : 'text-status-good'}`}>
             Balance: {(balance ?? 0).toLocaleString()}
           </p>
         )}
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        {error && <p className="text-xs text-status-bad">{error}</p>}
         <div className="flex gap-2">
           <button
             disabled={isPending || (balance ?? 0) > 0}
             onClick={handleCheckOut}
-            className="text-xs font-medium text-gray-700 hover:text-gray-900 disabled:opacity-50"
+            className="text-xs font-medium text-ink-soft hover:text-ink disabled:opacity-50"
           >
             {isPending ? 'Checking out...' : 'Confirm check-out'}
           </button>
           <button
             onClick={() => setMode('closed')}
-            className="text-xs font-medium text-gray-500 hover:text-gray-700"
+            className="text-xs font-medium text-ink-soft hover:text-indigo-700"
           >
             Cancel
           </button>
@@ -157,7 +157,7 @@ export function CheckInOutControl({
     return (
       <button
         onClick={openCheckIn}
-        className="text-xs font-medium text-green-700 hover:text-green-900"
+        className="text-xs font-medium text-status-good hover:opacity-90"
       >
         Check in
       </button>
@@ -168,7 +168,7 @@ export function CheckInOutControl({
     return (
       <button
         onClick={openCheckOut}
-        className="text-xs font-medium text-gray-700 hover:text-gray-900"
+        className="text-xs font-medium text-ink-soft hover:text-ink"
       >
         Check out
       </button>

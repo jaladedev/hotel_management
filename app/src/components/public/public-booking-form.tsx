@@ -83,11 +83,14 @@ export function PublicBookingForm({
     })
   }
 
+  const inputClass =
+    'w-full rounded-md border border-rule bg-white px-3 py-2 text-sm text-ink focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'
+
   return (
     <form id="booking-form" action={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Check-in</label>
+          <label className="mb-1 block text-sm font-medium text-ink-soft">Check-in</label>
           <input
             name="check_in"
             type="date"
@@ -97,11 +100,11 @@ export function PublicBookingForm({
               setCheckIn(e.target.value)
               refresh(roomTypeId, e.target.value, checkOut)
             }}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className={inputClass}
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Check-out</label>
+          <label className="mb-1 block text-sm font-medium text-ink-soft">Check-out</label>
           <input
             name="check_out"
             type="date"
@@ -111,11 +114,11 @@ export function PublicBookingForm({
               setCheckOut(e.target.value)
               refresh(roomTypeId, checkIn, e.target.value)
             }}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className={inputClass}
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Room Type</label>
+          <label className="mb-1 block text-sm font-medium text-ink-soft">Room Type</label>
           <select
             name="room_type_id"
             required
@@ -124,7 +127,7 @@ export function PublicBookingForm({
               setRoomTypeId(e.target.value)
               refresh(e.target.value, checkIn, checkOut)
             }}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className={inputClass}
           >
             <option value="">Select...</option>
             {roomTypes.map((rt) => (
@@ -136,14 +139,20 @@ export function PublicBookingForm({
         </div>
       </div>
 
-      {checking && <p className="text-sm text-gray-500">Checking availability...</p>}
+      {checking && <p className="text-sm text-ink-soft">Checking availability...</p>}
       {!checking && availability !== null && (
-        <p className={`text-sm font-medium ${availability > 0 ? 'text-green-700' : 'text-red-700'}`}>
-          {availability > 0 ? `${availability} room(s) available` : 'No rooms available for those dates'}
+        <p
+          className={`text-sm font-medium ${
+            availability > 0 ? 'text-status-good' : 'text-status-bad'
+          }`}
+        >
+          {availability > 0
+            ? `${availability} room(s) available`
+            : 'No rooms available for those dates'}
         </p>
       )}
       {!checking && availability === 0 && !waitlistJoined && (
-        <div className="rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="rounded-md bg-status-warn-bg p-3 text-sm text-status-warn">
           <p className="mb-2">
             Fill in your details below, then join the waitlist — we&apos;ll reach out if a room
             opens up for these dates.
@@ -152,69 +161,65 @@ export function PublicBookingForm({
             type="button"
             onClick={handleJoinWaitlist}
             disabled={waitlistPending}
-            className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+            className="rounded-md bg-brass-600 px-3 py-1.5 text-xs font-medium text-paper hover:bg-brass-700 disabled:opacity-50"
           >
             {waitlistPending ? 'Joining...' : 'Join Waitlist'}
           </button>
-          {waitlistError && <p className="mt-2 text-xs text-red-700">{waitlistError}</p>}
+          {waitlistError && <p className="mt-2 text-xs text-status-bad">{waitlistError}</p>}
         </div>
       )}
       {waitlistJoined && (
-        <p className="text-sm text-green-700">
+        <p className="text-sm text-status-good">
           You&apos;re on the waitlist — we&apos;ll email you if a room opens up.
         </p>
       )}
       {!checking && priceEstimate && priceEstimate.nights > 0 && (
-        <div className="rounded-md bg-gray-50 p-4 text-sm">
-          <p className="text-gray-600">
-            {priceEstimate.nights} night(s) — subtotal {priceEstimate.subtotal.toLocaleString()}
-            {priceEstimate.tax > 0 && ` + tax ${priceEstimate.tax.toLocaleString()}`}
+        <div className="rounded-md border border-rule bg-paper-dim p-4 text-sm">
+          <p className="text-ink-soft">
+            {priceEstimate.nights} night(s) — subtotal{' '}
+            <span className="font-mono">{priceEstimate.subtotal.toLocaleString()}</span>
+            {priceEstimate.tax > 0 && (
+              <>
+                {' '}
+                + tax <span className="font-mono">{priceEstimate.tax.toLocaleString()}</span>
+              </>
+            )}
           </p>
-          <p className="mt-1 text-lg font-semibold text-gray-900">
+          <p className="mt-1 font-display text-lg font-medium text-ink">
             Total: {priceEstimate.total.toLocaleString()}
           </p>
         </div>
       )}
 
-      <div className="space-y-4 border-t border-gray-100 pt-4">
-        <p className="text-sm font-medium text-gray-900">Your details</p>
+      <div className="space-y-4 border-t border-rule pt-4">
+        <p className="text-sm font-medium text-ink">Your details</p>
         <div className="grid grid-cols-2 gap-4">
-          <input
-            name="guest_first_name"
-            placeholder="First name"
-            required
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-          />
-          <input
-            name="guest_last_name"
-            placeholder="Last name"
-            required
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-          />
+          <input name="guest_first_name" placeholder="First name" required className={inputClass} />
+          <input name="guest_last_name" placeholder="Last name" required className={inputClass} />
           <input
             name="guest_email"
             type="email"
             placeholder="Email"
             required
-            className="col-span-2 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className={`col-span-2 ${inputClass}`}
           />
           <input
             name="guest_phone"
             placeholder="Phone"
-            className="col-span-2 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className={`col-span-2 ${inputClass}`}
           />
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-ink-soft">
           We&apos;ll use your email to send a confirmation and to look up your booking later.
         </p>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-status-bad">{error}</p>}
 
       <button
         type="submit"
         disabled={isPending || (availability !== null && availability <= 0)}
-        className="w-full rounded-md bg-gray-900 px-4 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+        className="w-full rounded-md bg-indigo-700 px-4 py-3 text-sm font-medium text-paper hover:bg-indigo-800 disabled:opacity-50"
       >
         {isPending ? 'Booking...' : 'Confirm Booking'}
       </button>

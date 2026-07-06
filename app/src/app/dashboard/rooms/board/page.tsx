@@ -11,7 +11,7 @@ export default async function RoomBoardPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-xl font-semibold text-gray-900">Room Board</h1>
+      <h1 className="mb-6 text-xl font-display font-medium text-ink">Room Board</h1>
       <RoomBoard initialRooms={rooms || []} />
     </div>
   )

@@ -40,16 +40,19 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-6 text-xl font-semibold text-gray-900">Set a new password</h1>
+    <div className="pattern-adire flex min-h-screen items-center justify-center bg-indigo-900 px-4">
+      <div className="w-full max-w-sm rounded-lg border border-indigo-600 bg-paper p-8 shadow-lg">
+        <p className="mb-1 font-mono text-xs uppercase tracking-[0.2em] text-brass-600">
+          Staff Access
+        </p>
+        <h1 className="mb-6 font-display text-xl font-medium text-ink">Set a new password</h1>
 
         {success ? (
-          <p className="text-sm text-green-700">Password updated. Redirecting...</p>
+          <p className="text-sm text-status-good">Password updated. Redirecting...</p>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-ink-soft">
                 New password
               </label>
               <input
@@ -57,12 +60,12 @@ export default function ResetPasswordPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+                className="w-full rounded-md border border-rule px-3 py-2 text-sm text-ink focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 autoComplete="new-password"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1 block text-sm font-medium text-ink-soft">
                 Confirm password
               </label>
               <input
@@ -70,17 +73,17 @@ export default function ResetPasswordPage() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+                className="w-full rounded-md border border-rule px-3 py-2 text-sm text-ink focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 autoComplete="new-password"
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-status-bad">{error}</p>}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+              className="w-full rounded-md bg-indigo-700 px-4 py-2 text-sm font-medium text-paper hover:bg-indigo-800 disabled:opacity-50"
             >
               {loading ? 'Saving...' : 'Update password'}
             </button>

@@ -5,6 +5,10 @@ import { getCurrentStaff } from '@/lib/get-current-staff'
 import { FolioLedger } from '@/components/folios/folio-ledger'
 import { CashPaymentForm } from '@/components/folios/cash-payment-form'
 import { IncidentalChargeForm } from '@/components/folios/incidental-charge-form'
+import { PaystackPaymentButton } from '@/components/folios/paystack-payment-button'
+import { PrintReceiptButton } from '@/components/folios/print-receipt-button'
+import { SecurityDepositPanel } from '@/components/folios/security-deposit-panel'
+import { RefundsPanel } from '@/components/folios/refunds-panel'
 import { ReservationStatusBadge } from '@/components/reservations/reservation-status-badge'
 
 export default async function FolioDetailPage({
@@ -32,14 +36,27 @@ export default async function FolioDetailPage({
 
   if (!folio) notFound()
 
-  const [{ data: lineItems }, { data: balanceRow }] = await Promise.all([
-    supabase
-      .from('folio_line_items')
-      .select('*')
-      .eq('folio_id', folio.id)
-      .order('created_at'),
-    supabase.from('folio_balances').select('balance').eq('folio_id', folio.id).maybeSingle(),
-  ])
+  const [{ data: lineItems }, { data: balanceRow }, { data: paystackPayments }, { data: refunds }] =
+    await Promise.all([
+      supabase
+        .from('folio_line_items')
+        .select('*')
+        .eq('folio_id', folio.id)
+        .order('created_at'),
+      supabase.from('folio_balances').select('balance').eq('folio_id', folio.id).maybeSingle(),
+      supabase
+        .from('payments')
+        .select('*')
+        .eq('folio_id', folio.id)
+        .eq('method', 'paystack')
+        .eq('status', 'success')
+        .eq('is_security_deposit', false),
+      supabase
+        .from('refunds')
+        .select('*')
+        .eq('folio_id', folio.id)
+        .order('created_at', { ascending: false }),
+    ])
 
   const balance = balanceRow?.balance ?? 0
   const canManage = staff.role === 'admin' || staff.role === 'front_desk'
@@ -52,7 +69,7 @@ export default async function FolioDetailPage({
       <div>
         <Link
           href="/dashboard/reservations"
-          className="text-xs font-medium text-gray-500 hover:text-gray-700"
+          className="text-xs font-medium text-ink-soft hover:text-indigo-700"
         >
           ← Back to reservations
         </Link>
@@ -60,37 +77,56 @@ export default async function FolioDetailPage({
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">{guestName}</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-xl font-display font-medium text-ink">{guestName}</h1>
+          <p className="mt-1 text-sm text-ink-soft">
             {reservation.room_types?.name}
             {reservation.rooms?.room_number ? ` — Room ${reservation.rooms.room_number}` : ''}
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-ink-soft">
             {reservation.check_in} → {reservation.check_out}
           </p>
           {reservation.guests?.email && (
-            <p className="text-sm text-gray-500">{reservation.guests.email}</p>
+            <p className="text-sm text-ink-soft">{reservation.guests.email}</p>
           )}
           {reservation.guests?.phone && (
-            <p className="text-sm text-gray-500">{reservation.guests.phone}</p>
+            <p className="text-sm text-ink-soft">{reservation.guests.phone}</p>
           )}
         </div>
         <div className="text-right">
           <ReservationStatusBadge status={reservation.status} />
-          <p className="mt-2 text-xs uppercase text-gray-400">
+          <p className="mt-2 text-xs uppercase text-ink-soft/60">
             Folio: {folio.status}
           </p>
         </div>
       </div>
 
-      {canManage && folio.status === 'open' && (
-        <div className="flex gap-3">
-          <CashPaymentForm folioId={folio.id} />
-          <IncidentalChargeForm folioId={folio.id} />
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-3">
+        {canManage && folio.status === 'open' && (
+          <>
+            <CashPaymentForm folioId={folio.id} />
+            {balance > 0 && (
+              <PaystackPaymentButton folioId={folio.id} defaultAmount={balance} />
+            )}
+            <IncidentalChargeForm folioId={folio.id} />
+          </>
+        )}
+        <PrintReceiptButton reservationId={reservation.id} />
+      </div>
 
       <FolioLedger lineItems={lineItems || []} balance={balance} />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <SecurityDepositPanel
+          folioId={folio.id}
+          status={folio.security_deposit_status}
+          amount={folio.security_deposit_amount}
+        />
+        <RefundsPanel
+          folioId={folio.id}
+          paystackPayments={paystackPayments || []}
+          refunds={refunds || []}
+        />
+      </div>
     </div>
   )
 }

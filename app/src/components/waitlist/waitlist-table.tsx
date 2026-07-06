@@ -10,11 +10,11 @@ type WaitlistEntryWithJoins = Tables<'waitlist_entries'> & {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  waiting: 'bg-gray-100 text-gray-700',
-  notified: 'bg-amber-100 text-amber-800',
-  promoted: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800',
-  expired: 'bg-gray-200 text-gray-500',
+  waiting: 'bg-paper-dim text-ink-soft',
+  notified: 'bg-status-warn-bg text-status-warn',
+  promoted: 'bg-status-good-bg text-status-good',
+  cancelled: 'bg-status-bad-bg text-status-bad',
+  expired: 'bg-status-neutral-bg text-ink-soft',
 }
 
 export function WaitlistTable({ entries }: { entries: WaitlistEntryWithJoins[] }) {
@@ -34,8 +34,8 @@ export function WaitlistTable({ entries }: { entries: WaitlistEntryWithJoins[] }
   }
 
   return (
-    <table className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white text-sm">
-      <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+    <table className="w-full overflow-hidden rounded-lg border border-rule bg-white text-sm">
+      <thead className="bg-paper-dim text-left text-xs font-medium uppercase text-ink-soft">
         <tr>
           <th className="px-4 py-2">Guest</th>
           <th className="px-4 py-2">Room Type</th>
@@ -44,19 +44,19 @@ export function WaitlistTable({ entries }: { entries: WaitlistEntryWithJoins[] }
           <th className="px-4 py-2"></th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-gray-100">
+      <tbody className="divide-y divide-rule/60">
         {entries.map((e) => (
           <tr key={e.id}>
             <td className="px-4 py-2">
-              <p className="font-medium text-gray-900">
+              <p className="font-medium text-ink">
                 {e.guests?.first_name} {e.guests?.last_name}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-ink-soft">
                 {e.guests?.email} {e.guests?.phone && `· ${e.guests.phone}`}
               </p>
             </td>
-            <td className="px-4 py-2 text-gray-700">{e.room_types?.name || '—'}</td>
-            <td className="px-4 py-2 text-gray-600">
+            <td className="px-4 py-2 text-ink-soft">{e.room_types?.name || '—'}</td>
+            <td className="px-4 py-2 text-ink-soft">
               {e.check_in} → {e.check_out}
             </td>
             <td className="px-4 py-2">
@@ -72,14 +72,14 @@ export function WaitlistTable({ entries }: { entries: WaitlistEntryWithJoins[] }
                   <button
                     disabled={isPending}
                     onClick={() => handlePromote(e.id)}
-                    className="text-xs font-medium text-green-700 hover:text-green-900 disabled:opacity-50"
+                    className="text-xs font-medium text-status-good hover:opacity-90 disabled:opacity-50"
                   >
                     Promote to booking
                   </button>
                   <button
                     disabled={isPending}
                     onClick={() => handleCancel(e.id)}
-                    className="text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50"
+                    className="text-xs font-medium text-status-bad hover:text-status-bad disabled:opacity-50"
                   >
                     Remove
                   </button>
@@ -90,7 +90,7 @@ export function WaitlistTable({ entries }: { entries: WaitlistEntryWithJoins[] }
         ))}
         {entries.length === 0 && (
           <tr>
-            <td colSpan={5} className="px-4 py-6 text-center text-gray-400">
+            <td colSpan={5} className="px-4 py-6 text-center text-ink-soft/60">
               No one on the waitlist.
             </td>
           </tr>

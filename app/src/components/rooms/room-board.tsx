@@ -8,11 +8,11 @@ import type { Enums, Tables } from '@/lib/database.types'
 type RoomWithType = Tables<'rooms'> & { room_types: { name: string } | null }
 
 const STATUS_STYLES: Record<Enums<'room_status'>, string> = {
-  vacant: 'bg-green-50 border-green-300 text-green-800',
-  occupied: 'bg-red-50 border-red-300 text-red-800',
-  dirty: 'bg-amber-50 border-amber-300 text-amber-800',
-  clean: 'bg-blue-50 border-blue-300 text-blue-800',
-  out_of_order: 'bg-gray-100 border-gray-300 text-gray-600',
+  vacant: 'bg-status-good-bg border-status-good/30 text-status-good',
+  occupied: 'bg-status-bad-bg border-status-bad/30 text-status-bad',
+  dirty: 'bg-status-warn-bg border-status-warn/30 text-status-warn',
+  clean: 'bg-status-info-bg border-status-info/30 text-status-info',
+  out_of_order: 'bg-status-neutral-bg border-status-neutral/30 text-status-neutral',
 }
 
 const STATUS_OPTIONS: Enums<'room_status'>[] = [
@@ -83,7 +83,7 @@ export function RoomBoard({ initialRooms }: { initialRooms: RoomWithType[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-4 text-xs text-gray-600">
+      <div className="flex gap-4 text-xs text-ink-soft">
         {STATUS_OPTIONS.map((s) => (
           <div key={s} className="flex items-center gap-1.5">
             <span className={`h-3 w-3 rounded-full border ${STATUS_STYLES[s]}`} />
@@ -94,7 +94,7 @@ export function RoomBoard({ initialRooms }: { initialRooms: RoomWithType[] }) {
 
       {floors.map((floor) => (
         <div key={floor}>
-          <h2 className="mb-2 text-xs font-semibold uppercase text-gray-500">Floor {floor}</h2>
+          <h2 className="mb-2 text-xs font-semibold uppercase text-ink-soft">Floor {floor}</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6">
             {roomsByFloor[floor]
               .sort((a, b) => a.room_number.localeCompare(b.room_number))

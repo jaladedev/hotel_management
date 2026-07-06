@@ -9,8 +9,8 @@ export function RoomTypesTable({
   canManage: boolean
 }) {
   return (
-    <table className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white text-sm">
-      <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+    <table className="w-full overflow-hidden rounded-lg border border-rule bg-white text-sm">
+      <thead className="bg-paper-dim text-left text-xs font-medium uppercase text-ink-soft">
         <tr>
           <th className="px-4 py-2">Name</th>
           <th className="px-4 py-2">Base Rate</th>
@@ -20,7 +20,7 @@ export function RoomTypesTable({
           {canManage && <th className="px-4 py-2"></th>}
         </tr>
       </thead>
-      <tbody className="divide-y divide-gray-100">
+      <tbody className="divide-y divide-rule/60">
         {roomTypes.map((rt) => (
           <RoomTypeRow key={rt.id} roomType={rt} canManage={canManage} />
         ))}

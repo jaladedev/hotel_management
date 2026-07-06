@@ -12,7 +12,7 @@ export default async function PaystackCallbackPage({
   if (!reference) {
     return (
       <div className="mx-auto max-w-md py-16 text-center">
-        <p className="text-red-600">No payment reference provided.</p>
+        <p className="text-status-bad">No payment reference provided.</p>
       </div>
     )
   }
@@ -34,13 +34,13 @@ export default async function PaystackCallbackPage({
     <div className="mx-auto max-w-md py-16 text-center">
       {result.error ? (
         <>
-          <h1 className="text-lg font-semibold text-red-700">Payment could not be confirmed</h1>
-          <p className="mt-2 text-sm text-gray-600">{result.error}</p>
+          <h1 className="text-lg font-semibold text-status-bad">Payment could not be confirmed</h1>
+          <p className="mt-2 text-sm text-ink-soft">{result.error}</p>
         </>
       ) : (
         <>
-          <h1 className="text-lg font-semibold text-green-700">Payment confirmed</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-lg font-semibold text-status-good">Payment confirmed</h1>
+          <p className="mt-2 text-sm text-ink-soft">
             {result.alreadySettled
               ? 'This payment was already recorded.'
               : 'The folio has been updated.'}
@@ -51,7 +51,7 @@ export default async function PaystackCallbackPage({
       {reservationId && (
         <Link
           href={`/dashboard/folios/${reservationId}`}
-          className="mt-6 inline-block rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+          className="mt-6 inline-block rounded-md bg-indigo-700 px-4 py-2 text-sm font-medium text-paper hover:bg-indigo-800"
         >
           Back to folio
         </Link>

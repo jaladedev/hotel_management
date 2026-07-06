@@ -30,55 +30,55 @@ export default async function GuestProfilePage({
     <div className="space-y-6">
       <Link
         href="/dashboard/guests"
-        className="text-xs font-medium text-gray-500 hover:text-gray-700"
+        className="text-xs font-medium text-ink-soft hover:text-indigo-700"
       >
         ← Back to guests
       </Link>
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-display font-medium text-ink">
             {guest.first_name} {guest.last_name}
           </h1>
-          <p className="text-sm text-gray-600">{guest.email || 'No email on file'}</p>
-          <p className="text-sm text-gray-600">{guest.phone || 'No phone on file'}</p>
+          <p className="text-sm text-ink-soft">{guest.email || 'No email on file'}</p>
+          <p className="text-sm text-ink-soft">{guest.phone || 'No phone on file'}</p>
           {guest.id_type && (
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-ink-soft/60">
               {guest.id_type}: {guest.id_number}
             </p>
           )}
         </div>
         {guest.is_repeat_guest && (
-          <span className="inline-block rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800">
+          <span className="inline-block rounded-full bg-brass-100 px-3 py-1 text-xs font-medium text-brass-700">
             Repeat guest
           </span>
         )}
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-xs text-gray-500">Total stays</p>
-          <p className="mt-1 text-xl font-semibold text-gray-900">{stayCount}</p>
+        <div className="rounded-lg border border-rule bg-white p-4">
+          <p className="text-xs text-ink-soft">Total stays</p>
+          <p className="mt-1 text-xl font-display font-medium text-ink">{stayCount}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-xs text-gray-500">Total spent (completed stays)</p>
-          <p className="mt-1 text-xl font-semibold text-gray-900">
+        <div className="rounded-lg border border-rule bg-white p-4">
+          <p className="text-xs text-ink-soft">Total spent (completed stays)</p>
+          <p className="mt-1 text-xl font-display font-medium text-ink">
             {totalSpent.toLocaleString()}
           </p>
         </div>
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-gray-900">Preferences & Notes</h2>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <h2 className="mb-2 text-sm font-semibold text-ink">Preferences & Notes</h2>
+        <div className="rounded-lg border border-rule bg-white p-4">
           <GuestNotesForm guestId={guest.id} notes={guest.notes} />
         </div>
       </div>
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold text-gray-900">Stay History</h2>
-        <table className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white text-sm">
-          <thead className="bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
+        <h2 className="mb-2 text-sm font-semibold text-ink">Stay History</h2>
+        <table className="w-full overflow-hidden rounded-lg border border-rule bg-white text-sm">
+          <thead className="bg-paper-dim text-left text-xs font-medium uppercase text-ink-soft">
             <tr>
               <th className="px-4 py-2">Room Type</th>
               <th className="px-4 py-2">Check-in</th>
@@ -88,20 +88,20 @@ export default async function GuestProfilePage({
               <th className="px-4 py-2"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-rule/60">
             {(reservations || []).map((r) => (
               <tr key={r.id}>
-                <td className="px-4 py-2 text-gray-700">{r.room_types?.name || '—'}</td>
-                <td className="px-4 py-2 text-gray-600">{r.check_in}</td>
-                <td className="px-4 py-2 text-gray-600">{r.check_out}</td>
-                <td className="px-4 py-2 text-gray-600">{r.total_amount.toLocaleString()}</td>
+                <td className="px-4 py-2 text-ink-soft">{r.room_types?.name || '—'}</td>
+                <td className="px-4 py-2 text-ink-soft">{r.check_in}</td>
+                <td className="px-4 py-2 text-ink-soft">{r.check_out}</td>
+                <td className="px-4 py-2 text-ink-soft">{r.total_amount.toLocaleString()}</td>
                 <td className="px-4 py-2">
                   <ReservationStatusBadge status={r.status} />
                 </td>
                 <td className="px-4 py-2">
                   <Link
                     href={`/dashboard/folios/${r.id}`}
-                    className="text-xs font-medium text-blue-700 hover:text-blue-900"
+                    className="text-xs font-medium text-indigo-700 hover:text-indigo-800"
                   >
                     View folio
                   </Link>
@@ -110,7 +110,7 @@ export default async function GuestProfilePage({
             ))}
             {(reservations || []).length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-gray-400">
+                <td colSpan={6} className="px-4 py-6 text-center text-ink-soft/60">
                   No stays yet.
                 </td>
               </tr>

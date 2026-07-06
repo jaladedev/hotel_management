@@ -73,7 +73,7 @@ export function NewReservationForm({ roomTypes }: { roomTypes: Tables<'room_type
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+        className="rounded-md bg-indigo-700 px-4 py-2 text-sm font-medium text-paper hover:bg-indigo-800"
       >
         + New Reservation
       </button>
@@ -83,39 +83,39 @@ export function NewReservationForm({ roomTypes }: { roomTypes: Tables<'room_type
   return (
     <form
       action={handleSubmit}
-      className="mb-6 space-y-4 rounded-lg border border-gray-200 bg-white p-4"
+      className="mb-6 space-y-4 rounded-lg border border-rule bg-white p-4"
     >
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">Check-in</label>
+          <label className="mb-1 block text-xs font-medium text-ink-soft">Check-in</label>
           <input
             name="check_in"
             type="date"
             required
             value={checkIn}
             onChange={(e) => handleFieldChange('checkIn', e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="w-full rounded-md border border-rule px-3 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">Check-out</label>
+          <label className="mb-1 block text-xs font-medium text-ink-soft">Check-out</label>
           <input
             name="check_out"
             type="date"
             required
             value={checkOut}
             onChange={(e) => handleFieldChange('checkOut', e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="w-full rounded-md border border-rule px-3 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">Room Type</label>
+          <label className="mb-1 block text-xs font-medium text-ink-soft">Room Type</label>
           <select
             name="room_type_id"
             required
             value={roomTypeId}
             onChange={(e) => handleFieldChange('roomTypeId', e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="w-full rounded-md border border-rule px-3 py-1.5 text-sm"
           >
             <option value="">Select...</option>
             {roomTypes.map((rt) => (
@@ -127,16 +127,16 @@ export function NewReservationForm({ roomTypes }: { roomTypes: Tables<'room_type
         </div>
       </div>
 
-      {checkingAvailability && <p className="text-xs text-gray-500">Checking availability...</p>}
+      {checkingAvailability && <p className="text-xs text-ink-soft">Checking availability...</p>}
       {!checkingAvailability && availability !== null && (
-        <p className={`text-xs font-medium ${availability > 0 ? 'text-green-700' : 'text-red-700'}`}>
+        <p className={`text-xs font-medium ${availability > 0 ? 'text-status-good' : 'text-status-bad'}`}>
           {availability > 0
             ? `${availability} room(s) available for these dates`
             : 'No rooms available for these dates'}
         </p>
       )}
       {!checkingAvailability && priceEstimate && priceEstimate.nights > 0 && (
-        <div className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-700">
+        <div className="rounded-md bg-paper-dim px-3 py-2 text-xs text-ink-soft">
           <p>
             {priceEstimate.nights} night(s) — room subtotal:{' '}
             <span className="font-medium">{priceEstimate.subtotal.toLocaleString()}</span>
@@ -147,69 +147,69 @@ export function NewReservationForm({ roomTypes }: { roomTypes: Tables<'room_type
               </>
             )}
           </p>
-          <p className="mt-0.5 font-semibold text-gray-900">
+          <p className="mt-0.5 font-semibold text-ink">
             Total: {priceEstimate.total.toLocaleString()}
           </p>
-          <p className="mt-0.5 text-[10px] text-gray-400">
+          <p className="mt-0.5 text-[10px] text-ink-soft/60">
             Reflects any active rate plan for these dates — not just the base rate.
           </p>
         </div>
       )}
 
-      <div className="border-t border-gray-100 pt-3">
-        <p className="mb-2 text-xs font-medium text-gray-700">Guest details</p>
+      <div className="border-t border-rule pt-3">
+        <p className="mb-2 text-xs font-medium text-ink-soft">Guest details</p>
         <div className="grid grid-cols-2 gap-3">
           <input
             name="guest_first_name"
             placeholder="First name"
             required
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-rule px-3 py-1.5 text-sm"
           />
           <input
             name="guest_last_name"
             placeholder="Last name"
             required
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-rule px-3 py-1.5 text-sm"
           />
           <input
             name="guest_email"
             type="email"
             placeholder="Email (used to match repeat guests)"
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-rule px-3 py-1.5 text-sm"
           />
           <input
             name="guest_phone"
             placeholder="Phone"
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-rule px-3 py-1.5 text-sm"
           />
           <input
             name="guest_id_type"
             placeholder="ID type (passport, national_id...)"
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-rule px-3 py-1.5 text-sm"
           />
           <input
             name="guest_id_number"
             placeholder="ID number"
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-rule px-3 py-1.5 text-sm"
           />
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {success && <p className="text-sm text-green-700">Reservation created.</p>}
+      {error && <p className="text-sm text-status-bad">{error}</p>}
+      {success && <p className="text-sm text-status-good">Reservation created.</p>}
 
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={isPending || (availability !== null && availability <= 0)}
-          className="rounded-md bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+          className="rounded-md bg-indigo-700 px-4 py-1.5 text-sm font-medium text-paper hover:bg-indigo-800 disabled:opacity-50"
         >
           {isPending ? 'Booking...' : 'Book Reservation'}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-md px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+          className="rounded-md px-4 py-1.5 text-sm font-medium text-ink-soft hover:bg-paper-dim"
         >
           Cancel
         </button>

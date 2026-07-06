@@ -48,7 +48,7 @@ export function PaystackPaymentButton({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-md bg-blue-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-800"
+        className="rounded-md bg-indigo-700 px-3 py-1.5 text-xs font-medium text-paper hover:bg-indigo-800"
       >
         Pay via Paystack
       </button>
@@ -56,28 +56,28 @@ export function PaystackPaymentButton({
   }
 
   return (
-    <div className="flex items-end gap-2 rounded-md border border-gray-200 bg-white p-3">
+    <div className="flex items-end gap-2 rounded-md border border-rule bg-white p-3">
       <div>
-        <label className="mb-1 block text-xs font-medium text-gray-700">Amount to charge</label>
+        <label className="mb-1 block text-xs font-medium text-ink-soft">Amount to charge</label>
         <input
           type="number"
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="w-36 rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="w-36 rounded-md border border-rule px-3 py-1.5 text-sm"
         />
       </div>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-status-bad">{error}</p>}
       <button
         onClick={handlePay}
         disabled={loading}
-        className="rounded-md bg-blue-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+        className="rounded-md bg-indigo-700 px-3 py-1.5 text-xs font-medium text-paper hover:bg-indigo-800 disabled:opacity-50"
       >
         {loading ? 'Redirecting...' : 'Continue to Paystack'}
       </button>
       <button
         onClick={() => setOpen(false)}
-        className="rounded-md px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100"
+        className="rounded-md px-3 py-1.5 text-xs font-medium text-ink-soft hover:bg-paper-dim"
       >
         Cancel
       </button>

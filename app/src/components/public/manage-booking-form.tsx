@@ -21,6 +21,9 @@ export function ManageBookingForm() {
   const [error, setError] = useState<string | null>(null)
   const [cancelled, setCancelled] = useState(false)
 
+  const inputClass =
+    'w-full rounded-md border border-rule bg-white px-3 py-2 text-sm text-ink focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500'
+
   function handleLookup(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -52,7 +55,7 @@ export function ManageBookingForm() {
     <div className="space-y-6">
       <form onSubmit={handleLookup} className="space-y-3">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
+          <label className="mb-1 block text-sm font-medium text-ink-soft">
             Booking reference
           </label>
           <input
@@ -60,55 +63,59 @@ export function ManageBookingForm() {
             onChange={(e) => setReservationId(e.target.value)}
             required
             placeholder="Paste your booking reference"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className={`${inputClass} font-mono`}
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">Email used to book</label>
+          <label className="mb-1 block text-sm font-medium text-ink-soft">
+            Email used to book
+          </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className={inputClass}
           />
         </div>
         <button
           type="submit"
           disabled={isPending}
-          className="w-full rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+          className="w-full rounded-md bg-indigo-700 px-4 py-2 text-sm font-medium text-paper hover:bg-indigo-800 disabled:opacity-50"
         >
           {isPending ? 'Looking up...' : 'Find my booking'}
         </button>
       </form>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-status-bad">{error}</p>}
 
       {reservation && !cancelled && (
-        <div className="rounded-lg border border-gray-200 p-5 text-sm">
+        <div className="rounded-lg border border-rule bg-white p-5 text-sm">
           <p className="mb-1">
-            <span className="font-medium text-gray-700">Room:</span> {reservation.room_types?.name}
+            <span className="font-medium text-ink-soft">Room:</span> {reservation.room_types?.name}
           </p>
           <p className="mb-1">
-            <span className="font-medium text-gray-700">Check-in:</span> {reservation.check_in}
+            <span className="font-medium text-ink-soft">Check-in:</span>{' '}
+            <span className="font-mono">{reservation.check_in}</span>
           </p>
           <p className="mb-1">
-            <span className="font-medium text-gray-700">Check-out:</span> {reservation.check_out}
+            <span className="font-medium text-ink-soft">Check-out:</span>{' '}
+            <span className="font-mono">{reservation.check_out}</span>
           </p>
           <p className="mb-1">
-            <span className="font-medium text-gray-700">Status:</span>{' '}
+            <span className="font-medium text-ink-soft">Status:</span>{' '}
             <span className="capitalize">{reservation.status.replace(/_/g, ' ')}</span>
           </p>
           <p className="mb-3">
-            <span className="font-medium text-gray-700">Total:</span>{' '}
-            {reservation.total_amount.toLocaleString()}
+            <span className="font-medium text-ink-soft">Total:</span>{' '}
+            <span className="font-mono">{reservation.total_amount.toLocaleString()}</span>
           </p>
 
           {['pending', 'confirmed'].includes(reservation.status) && (
             <button
               onClick={handleCancel}
               disabled={isPending}
-              className="rounded-md bg-red-600 px-4 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              className="rounded-md bg-status-bad px-4 py-2 text-xs font-medium text-paper hover:opacity-90 disabled:opacity-50"
             >
               Cancel this booking
             </button>
@@ -117,7 +124,7 @@ export function ManageBookingForm() {
       )}
 
       {cancelled && (
-        <p className="text-sm text-green-700">Your booking has been cancelled.</p>
+        <p className="text-sm text-status-good">Your booking has been cancelled.</p>
       )}
     </div>
   )

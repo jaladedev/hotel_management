@@ -29,17 +29,17 @@ export function ReservationCalendar({
   dates: Date[]
 }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-x-auto rounded-lg border border-rule bg-white">
       <table className="w-full border-collapse text-xs">
         <thead>
           <tr>
-            <th className="sticky left-0 z-10 border-b border-r border-gray-200 bg-gray-50 px-3 py-2 text-left font-medium text-gray-500">
+            <th className="sticky left-0 z-10 border-b border-r border-rule bg-paper-dim px-3 py-2 text-left font-medium text-ink-soft">
               Room
             </th>
             {dates.map((d) => (
               <th
                 key={d.toISOString()}
-                className="min-w-[70px] border-b border-gray-200 bg-gray-50 px-2 py-2 text-center font-medium text-gray-500"
+                className="min-w-[70px] border-b border-rule bg-paper-dim px-2 py-2 text-center font-medium text-ink-soft"
               >
                 {d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })}
               </th>
@@ -48,10 +48,10 @@ export function ReservationCalendar({
         </thead>
         <tbody>
           {rooms.map((room) => (
-            <tr key={room.id} className="border-b border-gray-100">
-              <td className="sticky left-0 z-10 border-r border-gray-200 bg-white px-3 py-2 font-medium text-gray-900">
+            <tr key={room.id} className="border-b border-rule">
+              <td className="sticky left-0 z-10 border-r border-rule bg-white px-3 py-2 font-medium text-ink">
                 {room.room_number}
-                <span className="ml-1 font-normal text-gray-400">
+                <span className="ml-1 font-normal text-ink-soft/60">
                   {room.room_types?.name}
                 </span>
               </td>
@@ -65,7 +65,7 @@ export function ReservationCalendar({
                   <td
                     key={dateKey}
                     className={`px-2 py-2 text-center ${
-                      reservation ? 'bg-blue-100 text-blue-900' : 'bg-white text-gray-300'
+                      reservation ? 'bg-status-info-bg text-indigo-800' : 'bg-white text-ink-soft/40'
                     }`}
                     title={
                       reservation?.guests

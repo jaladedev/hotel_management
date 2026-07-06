@@ -1,11 +1,11 @@
 import type { Enums } from '@/lib/database.types'
 
 const ROOM_STATUS_STYLES: Record<Enums<'room_status'>, string> = {
-  vacant: 'bg-green-100 text-green-800',
-  occupied: 'bg-red-100 text-red-800',
-  dirty: 'bg-amber-100 text-amber-800',
-  clean: 'bg-blue-100 text-blue-800',
-  out_of_order: 'bg-gray-200 text-gray-700',
+  vacant: 'bg-status-good-bg text-status-good',
+  occupied: 'bg-status-bad-bg text-status-bad',
+  dirty: 'bg-status-warn-bg text-status-warn',
+  clean: 'bg-status-info-bg text-status-info',
+  out_of_order: 'bg-status-neutral-bg text-status-neutral',
 }
 
 export function RoomStatusBadge({ status }: { status: Enums<'room_status'> }) {

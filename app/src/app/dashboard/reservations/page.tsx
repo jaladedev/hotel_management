@@ -22,7 +22,7 @@ export default async function ReservationsPage({
 
   let query = supabase
     .from('reservations')
-    .select('*, guests(first_name, last_name), room_types(name)')
+    .select('*, guests(id, first_name, last_name, email, phone), room_types(name)')
     .order('check_in', { ascending: false })
 
   if (params.status) {
@@ -52,7 +52,7 @@ export default async function ReservationsPage({
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Reservations</h1>
+        <h1 className="text-xl font-display font-medium text-ink">Reservations</h1>
         {canManage && <NewReservationForm roomTypes={roomTypes || []} />}
       </div>
 
@@ -67,12 +67,12 @@ export default async function ReservationsPage({
           name="guest"
           placeholder="Search by guest name..."
           defaultValue={params.guest || ''}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-rule px-3 py-1.5 text-sm"
         />
         <select
           name="status"
           defaultValue={params.status || ''}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="rounded-md border border-rule px-3 py-1.5 text-sm"
         >
           <option value="">All statuses</option>
           {STATUS_OPTIONS.map((s) => (
@@ -83,7 +83,7 @@ export default async function ReservationsPage({
         </select>
         <button
           type="submit"
-          className="rounded-md bg-gray-100 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
+          className="rounded-md bg-paper-dim px-4 py-1.5 text-sm font-medium text-ink-soft hover:bg-rule/50"
         >
           Filter
         </button>

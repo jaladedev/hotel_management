@@ -1,24 +1,24 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { runNoShowCheck } from '@/app/dashboard/reservations/actions'
+import { sendPendingWaitlistNotifications } from '@/app/dashboard/waitlist/actions'
 
-export function RunNoShowCheckButton() {
+export function SendWaitlistNotificationsButton() {
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<string | null>(null)
 
   function handleClick() {
     setMessage(null)
     startTransition(async () => {
-      const result = await runNoShowCheck()
+      const result = await sendPendingWaitlistNotifications()
       if (result.error) {
         setMessage(result.error)
         return
       }
       setMessage(
         result.count === 0
-          ? 'No overdue reservations found.'
-          : `Marked ${result.count} reservation(s) as no-show.`
+          ? 'No pending notifications to send.'
+          : `Sent ${result.count} notification email(s).`
       )
     })
   }
@@ -28,9 +28,9 @@ export function RunNoShowCheckButton() {
       <button
         onClick={handleClick}
         disabled={isPending}
-        className="rounded-md bg-paper-dim px-3 py-1.5 text-xs font-medium text-ink-soft hover:bg-rule/50 disabled:opacity-50"
+        className="rounded-md bg-brass-600 px-3 py-1.5 text-xs font-medium text-paper hover:bg-brass-700 disabled:opacity-50"
       >
-        {isPending ? 'Checking...' : 'Run no-show check'}
+        {isPending ? 'Sending...' : 'Send pending waitlist alerts'}
       </button>
       {message && <p className="text-xs text-ink-soft">{message}</p>}
     </div>

@@ -122,31 +122,31 @@ export default async function ReportsPage({
 
   return (
     <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-gray-900">Reports & Night Audit</h1>
+      <h1 className="text-xl font-display font-medium text-ink">Reports & Night Audit</h1>
 
       {/* KPI cards */}
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-xs text-gray-500">Occupancy (now)</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">
+        <div className="rounded-lg border border-rule bg-white p-4">
+          <p className="text-xs text-ink-soft">Occupancy (now)</p>
+          <p className="mt-1 text-2xl font-display font-medium text-ink">
             {occupancyRate.toFixed(0)}%
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-ink-soft/60">
             {occupiedRooms.length} / {activeRooms.length} rooms
           </p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-xs text-gray-500">ADR (range)</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{adr.toFixed(0)}</p>
-          <p className="text-xs text-gray-400">{roomNightsSold} room-nights sold</p>
+        <div className="rounded-lg border border-rule bg-white p-4">
+          <p className="text-xs text-ink-soft">ADR (range)</p>
+          <p className="mt-1 text-2xl font-display font-medium text-ink">{adr.toFixed(0)}</p>
+          <p className="text-xs text-ink-soft/60">{roomNightsSold} room-nights sold</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-xs text-gray-500">RevPAR (range)</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{revPAR.toFixed(0)}</p>
+        <div className="rounded-lg border border-rule bg-white p-4">
+          <p className="text-xs text-ink-soft">RevPAR (range)</p>
+          <p className="mt-1 text-2xl font-display font-medium text-ink">{revPAR.toFixed(0)}</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <p className="text-xs text-gray-500">Total revenue (range)</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">
+        <div className="rounded-lg border border-rule bg-white p-4">
+          <p className="text-xs text-ink-soft">Total revenue (range)</p>
+          <p className="mt-1 text-2xl font-display font-medium text-ink">
             {totalRevenue.toLocaleString()}
           </p>
         </div>
@@ -155,26 +155,26 @@ export default async function ReportsPage({
       {/* Date range picker */}
       <form className="flex items-end gap-3" method="get">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">From</label>
+          <label className="mb-1 block text-xs font-medium text-ink-soft">From</label>
           <input
             name="start"
             type="date"
             defaultValue={startDate}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-rule px-3 py-1.5 text-sm"
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">To</label>
+          <label className="mb-1 block text-xs font-medium text-ink-soft">To</label>
           <input
             name="end"
             type="date"
             defaultValue={endDate}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-rule px-3 py-1.5 text-sm"
           />
         </div>
         <button
           type="submit"
-          className="rounded-md bg-gray-100 px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
+          className="rounded-md bg-paper-dim px-4 py-1.5 text-sm font-medium text-ink-soft hover:bg-rule/50"
         >
           Update range
         </button>
@@ -182,20 +182,20 @@ export default async function ReportsPage({
 
       {/* Revenue by method */}
       <section>
-        <h2 className="mb-2 text-sm font-semibold text-gray-900">Revenue by Payment Method</h2>
-        <table className="w-full max-w-sm overflow-hidden rounded-lg border border-gray-200 bg-white text-sm">
-          <tbody className="divide-y divide-gray-100">
+        <h2 className="mb-2 text-sm font-semibold text-ink">Revenue by Payment Method</h2>
+        <table className="w-full max-w-sm overflow-hidden rounded-lg border border-rule bg-white text-sm">
+          <tbody className="divide-y divide-rule/60">
             {Object.entries(revenueByMethod).map(([method, amount]) => (
               <tr key={method}>
-                <td className="px-4 py-2 capitalize text-gray-700">{method}</td>
-                <td className="px-4 py-2 text-right font-medium text-gray-900">
+                <td className="px-4 py-2 capitalize text-ink-soft">{method}</td>
+                <td className="px-4 py-2 text-right font-medium text-ink">
                   {amount.toLocaleString()}
                 </td>
               </tr>
             ))}
             {Object.keys(revenueByMethod).length === 0 && (
               <tr>
-                <td colSpan={2} className="px-4 py-4 text-center text-gray-400">
+                <td colSpan={2} className="px-4 py-4 text-center text-ink-soft/60">
                   No payments in this range.
                 </td>
               </tr>
@@ -207,45 +207,45 @@ export default async function ReportsPage({
       {/* Arrivals / Departures */}
       <section className="grid gap-6 sm:grid-cols-2">
         <div>
-          <h2 className="mb-2 text-sm font-semibold text-gray-900">Today&apos;s Arrivals</h2>
-          <ul className="space-y-1 rounded-lg border border-gray-200 bg-white p-3 text-sm">
+          <h2 className="mb-2 text-sm font-semibold text-ink">Today&apos;s Arrivals</h2>
+          <ul className="space-y-1 rounded-lg border border-rule bg-white p-3 text-sm">
             {(arrivals || []).map((a) => (
               <li key={a.id} className="flex justify-between">
                 <span>
                   {a.guests?.first_name} {a.guests?.last_name}
                 </span>
-                <span className="text-gray-500">{a.room_types?.name}</span>
+                <span className="text-ink-soft">{a.room_types?.name}</span>
               </li>
             ))}
-            {(arrivals || []).length === 0 && <li className="text-gray-400">None today.</li>}
+            {(arrivals || []).length === 0 && <li className="text-ink-soft/60">None today.</li>}
           </ul>
         </div>
         <div>
-          <h2 className="mb-2 text-sm font-semibold text-gray-900">Today&apos;s Departures</h2>
-          <ul className="space-y-1 rounded-lg border border-gray-200 bg-white p-3 text-sm">
+          <h2 className="mb-2 text-sm font-semibold text-ink">Today&apos;s Departures</h2>
+          <ul className="space-y-1 rounded-lg border border-rule bg-white p-3 text-sm">
             {(departures || []).map((d) => (
               <li key={d.id} className="flex justify-between">
                 <span>
                   {d.guests?.first_name} {d.guests?.last_name}
                 </span>
-                <span className="text-gray-500">{d.room_types?.name}</span>
+                <span className="text-ink-soft">{d.room_types?.name}</span>
               </li>
             ))}
-            {(departures || []).length === 0 && <li className="text-gray-400">None today.</li>}
+            {(departures || []).length === 0 && <li className="text-ink-soft/60">None today.</li>}
           </ul>
         </div>
       </section>
 
       {/* Night Audit */}
       <section>
-        <h2 className="mb-2 text-sm font-semibold text-gray-900">Night Audit</h2>
-        <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-4">
+        <h2 className="mb-2 text-sm font-semibold text-ink">Night Audit</h2>
+        <div className="space-y-4 rounded-lg border border-rule bg-white p-4">
           <div>
-            <p className="mb-2 text-xs font-medium text-gray-700">1. Flag no-shows</p>
+            <p className="mb-2 text-xs font-medium text-ink-soft">1. Flag no-shows</p>
             <RunNoShowCheckButton />
           </div>
           <div>
-            <p className="mb-2 text-xs font-medium text-gray-700">2. Reconcile today&apos;s cash</p>
+            <p className="mb-2 text-xs font-medium text-ink-soft">2. Reconcile today&apos;s cash</p>
             <CashReconciliationForm
               date={todayKey}
               expectedCash={expectedCashToday}
