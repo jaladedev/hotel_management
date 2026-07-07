@@ -83,6 +83,21 @@ export function RoomTypeRow({
                   className="w-full rounded-md border border-rule px-3 py-1.5 text-sm"
                 />
               </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-ink-soft">
+                  Overbooking Tolerance
+                </label>
+                <input
+                  name="overbooking_tolerance"
+                  type="number"
+                  min={0}
+                  defaultValue={roomType.overbooking_tolerance}
+                  className="w-full rounded-md border border-rule px-3 py-1.5 text-sm"
+                />
+                <p className="mt-0.5 text-[10px] text-ink-soft/70">
+                  Extra bookings allowed beyond physical room count (0 = no overbooking)
+                </p>
+              </div>
             </div>
 
             <div>
@@ -128,6 +143,11 @@ export function RoomTypeRow({
       <td className="px-4 py-2 text-ink-soft">{roomType.max_occupancy}</td>
       <td className="px-4 py-2 text-ink-soft">
         {(roomType.amenities || []).join(', ') || '—'}
+        {roomType.overbooking_tolerance > 0 && (
+          <span className="ml-2 inline-block rounded-full bg-brass-100 px-2 py-0.5 text-[10px] font-medium text-brass-700">
+            +{roomType.overbooking_tolerance} overbook
+          </span>
+        )}
       </td>
       <td className="px-4 py-2">
         <span

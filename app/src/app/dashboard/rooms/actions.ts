@@ -57,6 +57,7 @@ export async function updateRoomType(id: string, formData: FormData) {
       max_occupancy: Number(formData.get('max_occupancy')),
       amenities,
       description: String(formData.get('description') || '') || null,
+      overbooking_tolerance: Number(formData.get('overbooking_tolerance') || 0),
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

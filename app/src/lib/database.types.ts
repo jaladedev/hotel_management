@@ -449,6 +449,98 @@ export type Database = {
         }
         Relationships: []
       }
+      housekeeping_tasks: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          room_id: string
+          status: Database["public"]["Enums"]["housekeeping_task_status"]
+          task_type: Database["public"]["Enums"]["housekeeping_task_type"]
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          room_id: string
+          status?: Database["public"]["Enums"]["housekeeping_task_status"]
+          task_type: Database["public"]["Enums"]["housekeeping_task_type"]
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          room_id?: string
+          status?: Database["public"]["Enums"]["housekeeping_task_status"]
+          task_type?: Database["public"]["Enums"]["housekeeping_task_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "housekeeping_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "housekeeping_tasks_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lost_found_items: {
+        Row: {
+          description: string
+          found_at: string
+          found_by: string | null
+          id: string
+          notes: string | null
+          returned_to: string | null
+          room_id: string | null
+          status: Database["public"]["Enums"]["lost_found_status"]
+        }
+        Insert: {
+          description: string
+          found_at?: string
+          found_by?: string | null
+          id?: string
+          notes?: string | null
+          returned_to?: string | null
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["lost_found_status"]
+        }
+        Update: {
+          description?: string
+          found_at?: string
+          found_by?: string | null
+          id?: string
+          notes?: string | null
+          returned_to?: string | null
+          room_id?: string | null
+          status?: Database["public"]["Enums"]["lost_found_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lost_found_items_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_categories: {
         Row: {
           created_at: string
@@ -768,6 +860,7 @@ export type Database = {
           is_active: boolean
           max_occupancy: number
           name: string
+          overbooking_tolerance: number
           photos: string[] | null
           updated_at: string
         }
@@ -780,6 +873,7 @@ export type Database = {
           is_active?: boolean
           max_occupancy: number
           name: string
+          overbooking_tolerance?: number
           photos?: string[] | null
           updated_at?: string
         }
@@ -792,6 +886,7 @@ export type Database = {
           is_active?: boolean
           max_occupancy?: number
           name?: string
+          overbooking_tolerance?: number
           photos?: string[] | null
           updated_at?: string
         }
@@ -982,6 +1077,15 @@ export type Database = {
           },
         ]
       }
+      overbooking_alerts: {
+        Row: {
+          booked_today: number | null
+          physical_rooms: number | null
+          room_type_id: string | null
+          room_type_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_exclusive_tax: {
@@ -1051,6 +1155,8 @@ export type Database = {
       fnb_order_status: "open" | "served" | "closed" | "cancelled"
       fnb_order_type: "dine_in" | "room_service"
       folio_status: "open" | "closed"
+      housekeeping_task_status: "pending" | "in_progress" | "done"
+      housekeeping_task_type: "cleaning" | "inspection" | "maintenance"
       line_item_type:
         | "room_charge"
         | "tax"
@@ -1060,6 +1166,7 @@ export type Database = {
         | "deposit_security"
         | "payment"
         | "refund"
+      lost_found_status: "stored" | "returned" | "disposed"
       payment_method: "paystack" | "cash"
       payment_status: "pending" | "success" | "failed" | "refunded"
       reservation_status:
@@ -1205,6 +1312,8 @@ export const Constants = {
       fnb_order_status: ["open", "served", "closed", "cancelled"],
       fnb_order_type: ["dine_in", "room_service"],
       folio_status: ["open", "closed"],
+      housekeeping_task_status: ["pending", "in_progress", "done"],
+      housekeeping_task_type: ["cleaning", "inspection", "maintenance"],
       line_item_type: [
         "room_charge",
         "tax",
@@ -1215,6 +1324,7 @@ export const Constants = {
         "payment",
         "refund",
       ],
+      lost_found_status: ["stored", "returned", "disposed"],
       payment_method: ["paystack", "cash"],
       payment_status: ["pending", "success", "failed", "refunded"],
       reservation_status: [

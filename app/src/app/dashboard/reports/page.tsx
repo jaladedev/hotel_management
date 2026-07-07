@@ -88,19 +88,62 @@ export default async function ReportsPage({
   const revPAR = activeRooms.length > 0 ? roomRevenue / (activeRooms.length * daysInRange) : 0
 
   // ---------- Revenue by payment method ----------
-  const { data: payments } = await supabase
-    .from('payments')
-    .select('method, amount')
-    .eq('status', 'success')
-    .eq('is_security_deposit', false)
-    .gte('created_at', `${startDate}T00:00:00Z`)
-    .lte('created_at', `${endDate}T23:59:59Z`)
+  // Three sources feed this: guest folio payments (cash/Paystack, tied to a
+  // stay), walk-in F&B orders (no folio — settled directly on the order),
+  // and walk-in event bookings (no folio — settled directly on the booking).
+  // Folio payments are dated by created_at (when paid); walk-in F&B by
+  // closed_at (when the sale happened); walk-in events by event_date (the
+  // service date), since events don't carry a separate settlement timestamp.
+  const [{ data: payments }, { data: walkInOrders }, { data: walkInEvents }] = await Promise.all([
+    supabase
+      .from('payments')
+      .select('method, amount')
+      .eq('status', 'success')
+      .eq('is_security_deposit', false)
+      .gte('created_at', `${startDate}T00:00:00Z`)
+      .lte('created_at', `${endDate}T23:59:59Z`),
+    supabase
+      .from('fnb_orders')
+      .select('paid_amount, paid_method')
+      .eq('status', 'closed')
+      .is('reservation_id', null)
+      .not('paid_amount', 'is', null)
+      .gte('closed_at', `${startDate}T00:00:00Z`)
+      .lte('closed_at', `${endDate}T23:59:59Z`),
+    supabase
+      .from('event_bookings')
+      .select('paid_amount, paid_method')
+      .eq('status', 'completed')
+      .is('linked_reservation_id', null)
+      .gt('paid_amount', 0)
+      .gte('event_date', startDate)
+      .lte('event_date', endDate),
+  ])
 
   const revenueByMethod = (payments || []).reduce<Record<string, number>>((acc, p) => {
     acc[p.method] = (acc[p.method] || 0) + p.amount
     return acc
   }, {})
+
+  for (const order of walkInOrders || []) {
+    if (order.paid_method && order.paid_amount) {
+      revenueByMethod[order.paid_method] = (revenueByMethod[order.paid_method] || 0) + order.paid_amount
+    }
+  }
+  for (const event of walkInEvents || []) {
+    if (event.paid_method && event.paid_amount) {
+      revenueByMethod[event.paid_method] = (revenueByMethod[event.paid_method] || 0) + event.paid_amount
+    }
+  }
+
   const totalRevenue = Object.values(revenueByMethod).reduce((a, b) => a + b, 0)
+
+  const walkInFnbRevenue = (walkInOrders || []).reduce((sum, o) => sum + (o.paid_amount || 0), 0)
+  const walkInEventRevenue = (walkInEvents || []).reduce((sum, e) => sum + (e.paid_amount || 0), 0)
+  // Everything else — guest-billed F&B/events, incidentals, taxes, deposits
+  // applied, etc. — is commingled in folio payments and isn't cleanly
+  // separable by source without tagging line items more specifically.
+  const otherRevenue = Math.max(0, totalRevenue - roomRevenue - walkInFnbRevenue - walkInEventRevenue)
 
   // ---------- Cash reconciliation ----------
   const { data: todaysCashPayments } = await supabase
@@ -120,9 +163,29 @@ export default async function ReportsPage({
     .eq('reconciliation_date', todayKey)
     .maybeSingle()
 
+  // ---------- Overbooking alerts (today) ----------
+  const { data: overbookingAlerts } = await supabase.from('overbooking_alerts').select('*')
+
   return (
     <div className="space-y-8">
       <h1 className="text-xl font-display font-medium text-ink">Reports & Night Audit</h1>
+
+      {overbookingAlerts && overbookingAlerts.length > 0 && (
+        <section className="rounded-lg border-2 border-status-bad/40 bg-status-bad-bg p-4">
+          <h2 className="mb-2 text-sm font-semibold text-status-bad">
+            Overbooking Alert — Today
+          </h2>
+          <ul className="space-y-1 text-sm text-status-bad">
+            {overbookingAlerts.map((a) => (
+              <li key={a.room_type_id}>
+                <strong>{a.room_type_name}</strong>: {a.booked_today} booked vs. {a.physical_rooms}{' '}
+                physical room(s) — {(a.booked_today ?? 0) - (a.physical_rooms ?? 0)} guest(s) may
+                need to be walked to another property.
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* KPI cards */}
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -180,28 +243,64 @@ export default async function ReportsPage({
         </button>
       </form>
 
-      {/* Revenue by method */}
-      <section>
-        <h2 className="mb-2 text-sm font-semibold text-ink">Revenue by Payment Method</h2>
-        <table className="w-full max-w-sm overflow-hidden rounded-lg border border-rule bg-white text-sm">
-          <tbody className="divide-y divide-rule/60">
-            {Object.entries(revenueByMethod).map(([method, amount]) => (
-              <tr key={method}>
-                <td className="px-4 py-2 capitalize text-ink-soft">{method}</td>
-                <td className="px-4 py-2 text-right font-medium text-ink">
-                  {amount.toLocaleString()}
-                </td>
-              </tr>
-            ))}
-            {Object.keys(revenueByMethod).length === 0 && (
+      {/* Revenue by method + source */}
+      <section className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <h2 className="mb-2 text-sm font-semibold text-ink">Revenue by Payment Method</h2>
+          <table className="w-full overflow-hidden rounded-lg border border-rule bg-white text-sm">
+            <tbody className="divide-y divide-rule/60">
+              {Object.entries(revenueByMethod).map(([method, amount]) => (
+                <tr key={method}>
+                  <td className="px-4 py-2 capitalize text-ink-soft">{method}</td>
+                  <td className="px-4 py-2 text-right font-mono text-ink">
+                    {amount.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+              {Object.keys(revenueByMethod).length === 0 && (
+                <tr>
+                  <td colSpan={2} className="px-4 py-4 text-center text-ink-soft/60">
+                    No payments in this range.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h2 className="mb-2 text-sm font-semibold text-ink">Revenue by Source</h2>
+          <table className="w-full overflow-hidden rounded-lg border border-rule bg-white text-sm">
+            <tbody className="divide-y divide-rule/60">
               <tr>
-                <td colSpan={2} className="px-4 py-4 text-center text-ink-soft/60">
-                  No payments in this range.
+                <td className="px-4 py-2 text-ink-soft">Rooms</td>
+                <td className="px-4 py-2 text-right font-mono text-ink">
+                  {roomRevenue.toLocaleString()}
                 </td>
               </tr>
-            )}
-          </tbody>
-        </table>
+              <tr>
+                <td className="px-4 py-2 text-ink-soft">Walk-in F&amp;B</td>
+                <td className="px-4 py-2 text-right font-mono text-ink">
+                  {walkInFnbRevenue.toLocaleString()}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-ink-soft">Walk-in events</td>
+                <td className="px-4 py-2 text-right font-mono text-ink">
+                  {walkInEventRevenue.toLocaleString()}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-ink-soft">
+                  Other <span className="text-xs text-ink-soft/60">(guest-billed F&amp;B/events, incidentals, tax)</span>
+                </td>
+                <td className="px-4 py-2 text-right font-mono text-ink">
+                  {otherRevenue.toLocaleString()}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {/* Arrivals / Departures */}
