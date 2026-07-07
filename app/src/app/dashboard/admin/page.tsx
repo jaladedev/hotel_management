@@ -5,6 +5,7 @@ import { getCurrentStaff } from '@/lib/get-current-staff'
 import { HotelSettingsForm } from '@/components/admin/hotel-settings-form'
 import { StaffTable } from '@/components/admin/staff-table'
 import { InviteStaffForm } from '@/components/admin/invite-staff-form'
+import { DataExportPanel } from '@/components/admin/data-export-panel'
 
 export default async function AdminPage() {
   const staff = await getCurrentStaff()
@@ -38,6 +39,11 @@ export default async function AdminPage() {
           </div>
         </div>
         <StaffTable staffList={staffList || []} currentStaffId={staff.id} />
+      </section>
+
+      <section>
+        <h1 className="mb-4 font-display text-xl font-medium text-ink">Data Export</h1>
+        <DataExportPanel />
       </section>
     </div>
   )
