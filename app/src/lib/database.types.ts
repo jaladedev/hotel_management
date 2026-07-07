@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          staff_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          staff_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          staff_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cash_reconciliations: {
         Row: {
           counted_cash: number
@@ -444,6 +482,39 @@ export type Database = {
           is_repeat_guest?: boolean
           last_name?: string
           notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hotel_settings: {
+        Row: {
+          address: string | null
+          cancellation_policy: string | null
+          currency: string
+          email: string | null
+          id: boolean
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          cancellation_policy?: string | null
+          currency?: string
+          email?: string | null
+          id?: boolean
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          cancellation_policy?: string | null
+          currency?: string
+          email?: string | null
+          id?: boolean
+          name?: string
           phone?: string | null
           updated_at?: string
         }

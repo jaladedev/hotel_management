@@ -155,6 +155,11 @@ export async function updateRoomStatus(
 
   if (error) return { error: error.message }
 
+  if (status === 'out_of_order') {
+    const { logAudit } = await import('@/lib/audit')
+    await logAudit(staff.id, 'room_marked_out_of_order', 'room', id, { reason: outOfOrderReason })
+  }
+
   revalidatePath('/dashboard/rooms')
   return { success: true }
 }

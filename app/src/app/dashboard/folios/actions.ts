@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentStaff } from '@/lib/get-current-staff'
+import { logAudit } from '@/lib/audit'
 
 export async function recordCashPayment(folioId: string, formData: FormData) {
   const staff = await getCurrentStaff()
@@ -44,6 +45,41 @@ export async function recordCashPayment(folioId: string, formData: FormData) {
 
   if (lineItemError) return { error: lineItemError.message }
 
+  // Send a payment receipt — fetch guest email + updated balance for the template.
+  const { data: folioInfo } = await supabase
+    .from('folios')
+    .select('reservation_id, reservations(guests(first_name, email))')
+    .eq('id', folioId)
+    .single()
+
+  const guestInfo = (
+    folioInfo as unknown as {
+      reservations: { guests: { first_name: string; email: string | null } | null } | null
+    } | null
+  )?.reservations?.guests
+
+  if (guestInfo?.email) {
+    const { data: balanceRow } = await supabase
+      .from('folio_balances')
+      .select('balance')
+      .eq('folio_id', folioId)
+      .maybeSingle()
+
+    const { paymentReceiptEmail, sendEmail } = await import('@/lib/email')
+    await sendEmail(
+      guestInfo.email,
+      'Payment received',
+      paymentReceiptEmail({
+        guestName: guestInfo.first_name,
+        amount,
+        method: 'cash',
+        balance: balanceRow?.balance ?? 0,
+      })
+    )
+  }
+
+  await logAudit(staff.id, 'cash_payment_recorded', 'folio', folioId, { amount })
+
   revalidatePath('/dashboard/folios')
   revalidatePath('/dashboard/reservations')
   return { success: true }
@@ -72,6 +108,8 @@ export async function addIncidentalCharge(folioId: string, formData: FormData) {
   })
 
   if (error) return { error: error.message }
+
+  await logAudit(staff.id, 'incidental_charge_added', 'folio', folioId, { description, amount })
 
   revalidatePath('/dashboard/folios')
   return { success: true }
@@ -148,6 +186,10 @@ export async function releaseSecurityDeposit(folioId: string) {
     .eq('id', folioId)
   if (folioError) return { error: folioError.message }
 
+  await logAudit(staff.id, 'security_deposit_released', 'folio', folioId, {
+    amount: folio.security_deposit_amount,
+  })
+
   revalidatePath('/dashboard/folios')
   return { success: true }
 }
@@ -219,6 +261,12 @@ export async function chargeSecurityDeposit(folioId: string, formData: FormData)
     .eq('id', folioId)
   if (folioError) return { error: folioError.message }
 
+  await logAudit(staff.id, 'security_deposit_charged', 'folio', folioId, {
+    description,
+    damageAmount,
+    coveredByDeposit,
+  })
+
   revalidatePath('/dashboard/folios')
   return { success: true }
 }
@@ -258,6 +306,8 @@ export async function refundCashPayment(folioId: string, formData: FormData) {
     created_by: staff.id,
   })
   if (lineItemError) return { error: lineItemError.message }
+
+  await logAudit(staff.id, 'cash_refund_issued', 'folio', folioId, { amount, reason })
 
   revalidatePath('/dashboard/folios')
   return { success: true }
@@ -315,6 +365,12 @@ export async function refundPaystackPayment(paymentId: string, formData: FormDat
     processed_by: staff.id,
   })
   if (refundError) return { error: refundError.message }
+
+  await logAudit(staff.id, 'paystack_refund_initiated', 'payment', paymentId, {
+    amount,
+    reason,
+    paystackRefundReference,
+  })
 
   revalidatePath('/dashboard/folios')
   return { success: true, pending: true }

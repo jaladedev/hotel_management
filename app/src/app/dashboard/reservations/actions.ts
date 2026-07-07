@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentStaff } from '@/lib/get-current-staff'
+import { logAudit } from '@/lib/audit'
 
 export async function getPriceEstimate(roomTypeId: string, checkIn: string, checkOut: string) {
   if (!roomTypeId || !checkIn || !checkOut || checkOut <= checkIn) {
@@ -295,6 +296,12 @@ export async function updateReservationDetails(reservationId: string, formData: 
     }
   }
 
+  await logAudit(staff.id, 'reservation_edited', 'reservation', reservationId, {
+    roomTypeId,
+    checkIn,
+    checkOut,
+  })
+
   revalidatePath('/dashboard/reservations')
   return { success: true }
 }
@@ -331,12 +338,35 @@ export async function cancelReservation(id: string) {
   }
 
   const supabase = await createClient()
+
+  const { data: reservation } = await supabase
+    .from('reservations')
+    .select('check_in, check_out, guests(first_name, email), room_types(name)')
+    .eq('id', id)
+    .single()
+
   const { error } = await supabase
     .from('reservations')
     .update({ status: 'cancelled', updated_at: new Date().toISOString() })
     .eq('id', id)
 
   if (error) return { error: error.message }
+
+  if (reservation?.guests?.email) {
+    const { cancellationEmail, sendEmail } = await import('@/lib/email')
+    await sendEmail(
+      reservation.guests.email,
+      'Your booking has been cancelled',
+      cancellationEmail({
+        guestName: reservation.guests.first_name,
+        roomTypeName: reservation.room_types?.name || 'your room',
+        checkIn: reservation.check_in,
+        checkOut: reservation.check_out,
+      })
+    )
+  }
+
+  await logAudit(staff.id, 'reservation_cancelled', 'reservation', id, {})
 
   revalidatePath('/dashboard/reservations')
   return { success: true }
