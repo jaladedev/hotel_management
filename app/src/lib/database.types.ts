@@ -55,6 +55,223 @@ export type Database = {
           },
         ]
       }
+      event_bookings: {
+        Row: {
+          catering_notes: string | null
+          contact_guest_id: string
+          created_at: string
+          created_by: string | null
+          end_time: string
+          event_date: string
+          event_name: string
+          event_space_id: string
+          headcount: number | null
+          id: string
+          linked_reservation_id: string | null
+          paid_amount: number
+          paid_method: Database["public"]["Enums"]["payment_method"] | null
+          rate_quoted: number
+          setup_type: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["event_booking_status"]
+        }
+        Insert: {
+          catering_notes?: string | null
+          contact_guest_id: string
+          created_at?: string
+          created_by?: string | null
+          end_time: string
+          event_date: string
+          event_name: string
+          event_space_id: string
+          headcount?: number | null
+          id?: string
+          linked_reservation_id?: string | null
+          paid_amount?: number
+          paid_method?: Database["public"]["Enums"]["payment_method"] | null
+          rate_quoted: number
+          setup_type?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["event_booking_status"]
+        }
+        Update: {
+          catering_notes?: string | null
+          contact_guest_id?: string
+          created_at?: string
+          created_by?: string | null
+          end_time?: string
+          event_date?: string
+          event_name?: string
+          event_space_id?: string
+          headcount?: number | null
+          id?: string
+          linked_reservation_id?: string | null
+          paid_amount?: number
+          paid_method?: Database["public"]["Enums"]["payment_method"] | null
+          rate_quoted?: number
+          setup_type?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["event_booking_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_bookings_contact_guest_id_fkey"
+            columns: ["contact_guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_bookings_event_space_id_fkey"
+            columns: ["event_space_id"]
+            isOneToOne: false
+            referencedRelation: "event_spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_bookings_linked_reservation_id_fkey"
+            columns: ["linked_reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_spaces: {
+        Row: {
+          capacity: number
+          created_at: string
+          description: string | null
+          hourly_rate: number
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          capacity: number
+          created_at?: string
+          description?: string | null
+          hourly_rate: number
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          description?: string | null
+          hourly_rate?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      fnb_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_name: string
+          menu_item_id: string | null
+          notes: string | null
+          order_id: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_name: string
+          menu_item_id?: string | null
+          notes?: string | null
+          order_id: string
+          quantity: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_name?: string
+          menu_item_id?: string | null
+          notes?: string | null
+          order_id?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fnb_order_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fnb_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "fnb_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fnb_orders: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          order_type: Database["public"]["Enums"]["fnb_order_type"]
+          paid_amount: number | null
+          paid_method: Database["public"]["Enums"]["payment_method"] | null
+          reservation_id: string | null
+          status: Database["public"]["Enums"]["fnb_order_status"]
+          table_id: string | null
+          walkin_guest_name: string | null
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_type: Database["public"]["Enums"]["fnb_order_type"]
+          paid_amount?: number | null
+          paid_method?: Database["public"]["Enums"]["payment_method"] | null
+          reservation_id?: string | null
+          status?: Database["public"]["Enums"]["fnb_order_status"]
+          table_id?: string | null
+          walkin_guest_name?: string | null
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          order_type?: Database["public"]["Enums"]["fnb_order_type"]
+          paid_amount?: number | null
+          paid_method?: Database["public"]["Enums"]["payment_method"] | null
+          reservation_id?: string | null
+          status?: Database["public"]["Enums"]["fnb_order_status"]
+          table_id?: string | null
+          walkin_guest_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fnb_orders_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fnb_orders_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       folio_line_items: {
         Row: {
           amount: number
@@ -231,6 +448,65 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      menu_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      menu_items: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_available: boolean
+          name: string
+          price: number
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_available?: boolean
+          name: string
+          price: number
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_available?: boolean
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "menu_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -458,6 +734,30 @@ export type Database = {
           },
         ]
       }
+      restaurant_tables: {
+        Row: {
+          created_at: string
+          id: string
+          seats: number
+          status: Database["public"]["Enums"]["table_status"]
+          table_number: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          seats?: number
+          status?: Database["public"]["Enums"]["table_status"]
+          table_number: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          seats?: number
+          status?: Database["public"]["Enums"]["table_status"]
+          table_number?: string
+        }
+        Relationships: []
+      }
       room_types: {
         Row: {
           amenities: string[] | null
@@ -594,6 +894,7 @@ export type Database = {
           check_in: string
           check_out: string
           created_at: string
+          emailed_at: string | null
           guest_id: string
           id: string
           notified_at: string | null
@@ -605,6 +906,7 @@ export type Database = {
           check_in: string
           check_out: string
           created_at?: string
+          emailed_at?: string | null
           guest_id: string
           id?: string
           notified_at?: string | null
@@ -616,6 +918,7 @@ export type Database = {
           check_in?: string
           check_out?: string
           created_at?: string
+          emailed_at?: string | null
           guest_id?: string
           id?: string
           notified_at?: string | null
@@ -664,6 +967,21 @@ export type Database = {
           },
         ]
       }
+      fnb_order_totals: {
+        Row: {
+          order_id: string | null
+          total: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fnb_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "fnb_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_exclusive_tax: {
@@ -679,6 +997,16 @@ export type Database = {
           p_room_type_id: string
         }
         Returns: number
+      }
+      check_event_space_availability: {
+        Args: {
+          p_end_time: string
+          p_event_date: string
+          p_event_space_id: string
+          p_exclude_booking_id?: string | null
+          p_start_time: string
+        }
+        Returns: boolean
       }
       check_availability: {
         Args: {
@@ -719,6 +1047,9 @@ export type Database = {
       }
     }
     Enums: {
+      event_booking_status: "pending" | "confirmed" | "cancelled" | "completed"
+      fnb_order_status: "open" | "served" | "closed" | "cancelled"
+      fnb_order_type: "dine_in" | "room_service"
       folio_status: "open" | "closed"
       line_item_type:
         | "room_charge"
@@ -741,6 +1072,7 @@ export type Database = {
       refund_status: "pending" | "processed" | "failed"
       room_status: "vacant" | "occupied" | "dirty" | "clean" | "out_of_order"
       staff_role: "admin" | "front_desk" | "housekeeping"
+      table_status: "available" | "occupied" | "reserved" | "cleaning"
       waitlist_status: "waiting" | "notified" | "promoted" | "cancelled" | "expired"
     }
     CompositeTypes: {
@@ -869,6 +1201,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      event_booking_status: ["pending", "confirmed", "cancelled", "completed"],
+      fnb_order_status: ["open", "served", "closed", "cancelled"],
+      fnb_order_type: ["dine_in", "room_service"],
       folio_status: ["open", "closed"],
       line_item_type: [
         "room_charge",
@@ -893,6 +1228,7 @@ export const Constants = {
       refund_status: ["pending", "processed", "failed"],
       room_status: ["vacant", "occupied", "dirty", "clean", "out_of_order"],
       staff_role: ["admin", "front_desk", "housekeeping"],
+      table_status: ["available", "occupied", "reserved", "cleaning"],
       waitlist_status: ["waiting", "notified", "promoted", "cancelled", "expired"],
     },
   },
