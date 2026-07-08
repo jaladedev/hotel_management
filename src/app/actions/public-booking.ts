@@ -1,14 +1,23 @@
 'use server'
 
 import { createServiceClient } from '@/lib/supabase/service'
+import { sendEmail, bookingConfirmationEmail, cancellationEmail } from '@/lib/email'
 
 export async function getActiveRoomTypes() {
   const supabase = createServiceClient()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('room_types')
     .select('*')
     .eq('is_active', true)
     .order('base_rate')
+
+  if (error) {
+    // This surfaces in the terminal running `npm run dev`, not the browser —
+    // if rooms aren't showing on the public site, check here first. Most
+    // likely cause: SUPABASE_SERVICE_ROLE_KEY missing/wrong in .env.local.
+    console.error('getActiveRoomTypes failed:', error.message)
+  }
+
   return data || []
 }
 
@@ -146,8 +155,26 @@ export async function publicCreateReservation(formData: FormData) {
     }
   }
 
-  // TODO: send booking confirmation email here once the notifications
-  // piece is built (Phase 3 — Notifications).
+  // Send booking confirmation email — failures here never block the booking
+  // itself, since sendEmail() swallows and logs its own errors.
+  const { data: roomType } = await supabase
+    .from('room_types')
+    .select('name')
+    .eq('id', roomTypeId)
+    .single()
+
+  await sendEmail(
+    email,
+    'Your booking is confirmed',
+    bookingConfirmationEmail({
+      guestName: firstName,
+      roomTypeName: roomType?.name || 'your room',
+      checkIn,
+      checkOut,
+      totalAmount: (subtotal ?? 0) + (taxAmount ?? 0),
+      reservationId: reservationId!,
+    })
+  )
 
   return { success: true, reservationId, folioId }
 }
@@ -230,5 +257,17 @@ export async function publicCancelReservation(reservationId: string, email: stri
     .eq('id', reservationId)
 
   if (error) return { error: error.message }
+
+  await sendEmail(
+    email,
+    'Your booking has been cancelled',
+    cancellationEmail({
+      guestName: lookup.reservation.guests?.first_name || 'Guest',
+      roomTypeName: lookup.reservation.room_types?.name || 'your room',
+      checkIn: lookup.reservation.check_in,
+      checkOut: lookup.reservation.check_out,
+    })
+  )
+
   return { success: true }
 }

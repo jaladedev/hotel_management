@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   publicCheckAvailability,
@@ -13,17 +13,21 @@ import type { Tables } from '@/lib/database.types'
 export function PublicBookingForm({
   roomTypes,
   preselectedRoomTypeId,
+  preselectedCheckIn,
+  preselectedCheckOut,
 }: {
   roomTypes: Tables<'room_types'>[]
   preselectedRoomTypeId?: string
+  preselectedCheckIn?: string
+  preselectedCheckOut?: string
 }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
   const [roomTypeId, setRoomTypeId] = useState(preselectedRoomTypeId || '')
-  const [checkIn, setCheckIn] = useState('')
-  const [checkOut, setCheckOut] = useState('')
+  const [checkIn, setCheckIn] = useState(preselectedCheckIn || '')
+  const [checkOut, setCheckOut] = useState(preselectedCheckOut || '')
   const [availability, setAvailability] = useState<number | null>(null)
   const [checking, setChecking] = useState(false)
   const [priceEstimate, setPriceEstimate] = useState<{
@@ -48,6 +52,16 @@ export function PublicBookingForm({
     setAvailability(availResult.available ?? 0)
     setPriceEstimate(priceResult)
   }
+
+  // If arriving from the homepage search widget with dates/room type already
+  // filled in, check availability immediately rather than waiting for the
+  // guest to touch a field.
+  useEffect(() => {
+    if (roomTypeId && checkIn && checkOut) {
+      refresh(roomTypeId, checkIn, checkOut)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [waitlistJoined, setWaitlistJoined] = useState(false)
   const [waitlistPending, setWaitlistPending] = useState(false)

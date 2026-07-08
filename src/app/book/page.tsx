@@ -5,7 +5,7 @@ import { PublicBookingForm } from '@/components/public/public-booking-form'
 export default async function BookPage({
   searchParams,
 }: {
-  searchParams: Promise<{ room_type_id?: string }>
+  searchParams: Promise<{ room_type_id?: string; check_in?: string; check_out?: string }>
 }) {
   const roomTypes = await getActiveRoomTypes()
   const params = await searchParams
@@ -25,7 +25,12 @@ export default async function BookPage({
         <p className="mb-6 text-sm text-ink-soft">
           Pick your dates and we&apos;ll show live availability and pricing.
         </p>
-        <PublicBookingForm roomTypes={roomTypes} preselectedRoomTypeId={params.room_type_id} />
+        <PublicBookingForm
+          roomTypes={roomTypes}
+          preselectedRoomTypeId={params.room_type_id}
+          preselectedCheckIn={params.check_in}
+          preselectedCheckOut={params.check_out}
+        />
       </main>
     </div>
   )
