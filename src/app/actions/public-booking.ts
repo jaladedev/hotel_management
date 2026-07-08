@@ -2,6 +2,7 @@
 
 import { createServiceClient } from '@/lib/supabase/service'
 import { sendEmail, bookingConfirmationEmail, cancellationEmail } from '@/lib/email'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function getActiveRoomTypes() {
   const supabase = createServiceClient()
@@ -68,6 +69,9 @@ export async function publicGetPriceEstimate(
 }
 
 export async function publicCreateReservation(formData: FormData) {
+  const rateLimit = await checkRateLimit('create_reservation', 5, 3600)
+  if (!rateLimit.allowed) return { error: rateLimit.error }
+
   const supabase = createServiceClient()
 
   const roomTypeId = String(formData.get('room_type_id'))
@@ -181,6 +185,9 @@ export async function publicCreateReservation(formData: FormData) {
 }
 
 export async function publicJoinWaitlist(formData: FormData) {
+  const rateLimit = await checkRateLimit('join_waitlist', 5, 3600)
+  if (!rateLimit.allowed) return { error: rateLimit.error }
+
   const supabase = createServiceClient()
 
   const roomTypeId = String(formData.get('room_type_id'))
@@ -227,6 +234,9 @@ export async function publicLookupReservation(confirmationCode: string, email: s
   if (!confirmationCode || !email) {
     return { error: 'Booking reference and email are required.' }
   }
+
+  const rateLimit = await checkRateLimit('lookup_reservation', 20, 3600)
+  if (!rateLimit.allowed) return { error: rateLimit.error }
 
   const supabase = createServiceClient()
 

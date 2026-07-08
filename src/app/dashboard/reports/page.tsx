@@ -140,10 +140,45 @@ export default async function ReportsPage({
 
   const walkInFnbRevenue = (walkInOrders || []).reduce((sum, o) => sum + (o.paid_amount || 0), 0)
   const walkInEventRevenue = (walkInEvents || []).reduce((sum, e) => sum + (e.paid_amount || 0), 0)
-  // Everything else — guest-billed F&B/events, incidentals, taxes, deposits
-  // applied, etc. — is commingled in folio payments and isn't cleanly
-  // separable by source without tagging line items more specifically.
-  const otherRevenue = Math.max(0, totalRevenue - roomRevenue - walkInFnbRevenue - walkInEventRevenue)
+
+  // Guest-billed F&B/event charges post to folio_line_items as a generic
+  // 'incidental' type alongside minibar, damage charges, etc. — there's no
+  // dedicated line_item_type for them. We identify them here by matching
+  // the exact description prefixes fnb/actions.ts and events/actions.ts
+  // always use ("Restaurant order..." / "Event space charge: ..."), dated
+  // by when the charge was posted (created_at), not the stay period.
+  const [{ data: guestBilledFnbItems }, { data: guestBilledEventItems }] = await Promise.all([
+    supabase
+      .from('folio_line_items')
+      .select('amount')
+      .eq('type', 'incidental')
+      .ilike('description', 'Restaurant order%')
+      .gte('created_at', `${startDate}T00:00:00Z`)
+      .lte('created_at', `${endDate}T23:59:59Z`),
+    supabase
+      .from('folio_line_items')
+      .select('amount')
+      .eq('type', 'incidental')
+      .ilike('description', 'Event space charge:%')
+      .gte('created_at', `${startDate}T00:00:00Z`)
+      .lte('created_at', `${endDate}T23:59:59Z`),
+  ])
+
+  const guestBilledFnbRevenue = (guestBilledFnbItems || []).reduce((sum, i) => sum + i.amount, 0)
+  const guestBilledEventRevenue = (guestBilledEventItems || []).reduce((sum, i) => sum + i.amount, 0)
+
+  // Everything left — incidentals that aren't F&B/events (minibar, damage
+  // charges), taxes, applied deposits, etc. — still isn't cleanly
+  // separable without more specific tagging.
+  const otherRevenue = Math.max(
+    0,
+    totalRevenue -
+      roomRevenue -
+      walkInFnbRevenue -
+      walkInEventRevenue -
+      guestBilledFnbRevenue -
+      guestBilledEventRevenue
+  )
 
   // ---------- Cash reconciliation ----------
   const { data: todaysCashPayments } = await supabase
@@ -291,8 +326,20 @@ export default async function ReportsPage({
                 </td>
               </tr>
               <tr>
+                <td className="px-4 py-2 text-ink-soft">Guest-billed F&amp;B</td>
+                <td className="px-4 py-2 text-right font-mono text-ink">
+                  {guestBilledFnbRevenue.toLocaleString()}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2 text-ink-soft">Guest-billed events</td>
+                <td className="px-4 py-2 text-right font-mono text-ink">
+                  {guestBilledEventRevenue.toLocaleString()}
+                </td>
+              </tr>
+              <tr>
                 <td className="px-4 py-2 text-ink-soft">
-                  Other <span className="text-xs text-ink-soft/60">(guest-billed F&amp;B/events, incidentals, tax)</span>
+                  Other <span className="text-xs text-ink-soft/60">(other incidentals, tax)</span>
                 </td>
                 <td className="px-4 py-2 text-right font-mono text-ink">
                   {otherRevenue.toLocaleString()}

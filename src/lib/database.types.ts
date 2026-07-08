@@ -725,6 +725,24 @@ export type Database = {
           },
         ]
       }
+      rate_limit_attempts: {
+        Row: {
+          created_at: string
+          id: number
+          key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          key: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          key?: string
+        }
+        Relationships: []
+      }
       rate_plans: {
         Row: {
           created_at: string
