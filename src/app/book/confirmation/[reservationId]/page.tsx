@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { publicLookupReservation } from '@/app/actions/public-booking'
+import { getHotelSettings } from '@/app/actions/hotel-settings'
 
 export default async function BookingConfirmationPage({
   params,
@@ -14,7 +15,10 @@ export default async function BookingConfirmationPage({
 
   if (!email) notFound()
 
-  const result = await publicLookupReservation(reservationId, email)
+  const [result, settings] = await Promise.all([
+    publicLookupReservation(reservationId, email),
+    getHotelSettings(),
+  ])
   if (result.error || !result.reservation) notFound()
 
   const r = result.reservation
@@ -22,6 +26,7 @@ export default async function BookingConfirmationPage({
   return (
     <div className="min-h-screen bg-paper px-6 py-10">
       <div className="mx-auto max-w-md text-center">
+        <p className="mb-1 font-display text-sm font-medium text-ink-soft">{settings.name}</p>
         <p className="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-status-good">
           Confirmed
         </p>

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getHotelSettings } from '@/app/actions/hotel-settings'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -11,6 +12,11 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [hotelName, setHotelName] = useState('')
+
+  useEffect(() => {
+    getHotelSettings().then((s) => setHotelName(s.name))
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -42,6 +48,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="pattern-adire flex min-h-screen items-center justify-center bg-indigo-900 px-4">
       <div className="w-full max-w-sm rounded-lg border border-indigo-600 bg-paper p-8 shadow-lg">
+        <p className="mb-1 font-display text-sm font-medium text-ink">{hotelName}</p>
         <p className="mb-1 font-mono text-xs uppercase tracking-[0.2em] text-brass-600">
           Staff Access
         </p>

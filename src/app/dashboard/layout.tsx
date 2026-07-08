@@ -1,4 +1,5 @@
 import { getCurrentStaff } from '@/lib/get-current-staff'
+import { getHotelSettings } from '@/app/actions/hotel-settings'
 import { SignOutButton } from '@/components/layout/sign-out-button'
 import { NavLink } from '@/components/layout/nav-link'
 
@@ -23,7 +24,7 @@ const NAV_ITEMS = [
 ] as const
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const staff = await getCurrentStaff()
+  const [staff, settings] = await Promise.all([getCurrentStaff(), getHotelSettings()])
 
   const visibleNavItems = NAV_ITEMS.filter((item) =>
     (item.roles as readonly string[]).includes(staff.role)
@@ -33,7 +34,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="flex min-h-screen">
       <aside className="flex w-56 flex-col bg-indigo-900">
         <div className="border-b border-indigo-700 px-4 py-4">
-          <p className="font-display text-sm font-medium text-paper">{staff.full_name}</p>
+          <p className="font-display text-sm font-medium text-paper">{settings.name}</p>
+          <p className="mt-2 text-xs text-indigo-100/70">{staff.full_name}</p>
           <p className="font-mono text-xs capitalize text-brass-400">
             {staff.role.replace('_', ' ')}
           </p>
