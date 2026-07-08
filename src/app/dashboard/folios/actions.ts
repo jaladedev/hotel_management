@@ -341,6 +341,25 @@ export async function refundPaystackPayment(paymentId: string, formData: FormDat
     return { error: 'Refund amount cannot exceed the original payment.' }
   }
 
+  // Guard against over-refunding across MULTIPLE partial refunds on the
+  // same payment — the check above only compares against the original
+  // amount, which doesn't account for refunds already issued. Pending
+  // refunds count too, since they'll likely be confirmed.
+  const { data: existingRefunds } = await supabase
+    .from('refunds')
+    .select('amount')
+    .eq('payment_id', paymentId)
+    .in('status', ['pending', 'processed'])
+
+  const alreadyRefunded = (existingRefunds || []).reduce((sum, r) => sum + r.amount, 0)
+  const remainingRefundable = payment.amount - alreadyRefunded
+
+  if (amount > remainingRefundable) {
+    return {
+      error: `Only ${remainingRefundable.toLocaleString()} remains refundable on this payment (${alreadyRefunded.toLocaleString()} already refunded or pending).`,
+    }
+  }
+
   const { initiatePaystackRefund } = await import('@/lib/paystack')
 
   let paystackRefundReference: string

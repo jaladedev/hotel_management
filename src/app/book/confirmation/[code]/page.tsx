@@ -7,16 +7,16 @@ export default async function BookingConfirmationPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ reservationId: string }>
+  params: Promise<{ code: string }>
   searchParams: Promise<{ email?: string }>
 }) {
-  const { reservationId } = await params
+  const { code } = await params
   const { email } = await searchParams
 
   if (!email) notFound()
 
   const [result, settings] = await Promise.all([
-    publicLookupReservation(reservationId, email),
+    publicLookupReservation(code, email),
     getHotelSettings(),
   ])
   if (result.error || !result.reservation) notFound()
@@ -56,7 +56,7 @@ export default async function BookingConfirmationPage({
           <p className="mb-2 text-xs text-ink-soft">
             Booking reference — keep this to manage your booking:
           </p>
-          <span className="ledger-stamp break-all">{r.id}</span>
+          <span className="ledger-stamp">{r.confirmation_code}</span>
         </div>
 
         <Link

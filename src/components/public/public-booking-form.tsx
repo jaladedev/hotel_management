@@ -90,7 +90,7 @@ export function PublicBookingForm({
         return
       }
       router.push(
-        `/book/confirmation/${result.reservationId}?email=${encodeURIComponent(
+        `/book/confirmation/${result.confirmationCode}?email=${encodeURIComponent(
           String(formData.get('guest_email'))
         )}`
       )

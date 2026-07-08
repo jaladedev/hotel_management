@@ -100,7 +100,7 @@ export function bookingConfirmationEmail(params: {
   checkIn: string
   checkOut: string
   totalAmount: number
-  reservationId: string
+  confirmationCode: string
 }) {
   return wrapTemplate(
     `
@@ -113,7 +113,7 @@ export function bookingConfirmationEmail(params: {
         ${detailRow('Check-out', params.checkOut)}
         ${detailRow('Total', params.totalAmount.toLocaleString())}
       </table>
-      ${ledgerStamp(params.reservationId)}
+      ${ledgerStamp(params.confirmationCode)}
     `,
     'Reservation Confirmed'
   )

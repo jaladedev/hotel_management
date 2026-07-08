@@ -99,7 +99,7 @@ export default async function FolioPrintPage({
             <tr>
               <td className="py-0.5 align-top font-medium text-ink-soft">Reference</td>
               <td className="py-0.5">
-                <span className="ledger-stamp break-all">{reservation.id}</span>
+                <span className="ledger-stamp">{reservation.confirmation_code || reservation.id}</span>
               </td>
             </tr>
           </tbody>

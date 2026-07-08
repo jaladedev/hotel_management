@@ -157,11 +157,12 @@ export async function publicCreateReservation(formData: FormData) {
 
   // Send booking confirmation email — failures here never block the booking
   // itself, since sendEmail() swallows and logs its own errors.
-  const { data: roomType } = await supabase
-    .from('room_types')
-    .select('name')
-    .eq('id', roomTypeId)
-    .single()
+  const [{ data: roomType }, { data: createdReservation }] = await Promise.all([
+    supabase.from('room_types').select('name').eq('id', roomTypeId).single(),
+    supabase.from('reservations').select('confirmation_code').eq('id', reservationId).single(),
+  ])
+
+  const confirmationCode = createdReservation?.confirmation_code || reservationId
 
   await sendEmail(
     email,
@@ -172,11 +173,11 @@ export async function publicCreateReservation(formData: FormData) {
       checkIn,
       checkOut,
       totalAmount: (subtotal ?? 0) + (taxAmount ?? 0),
-      reservationId: reservationId!,
+      confirmationCode,
     })
   )
 
-  return { success: true, reservationId, folioId }
+  return { success: true, reservationId, confirmationCode, folioId }
 }
 
 export async function publicJoinWaitlist(formData: FormData) {
@@ -222,28 +223,30 @@ export async function publicJoinWaitlist(formData: FormData) {
   return { success: true }
 }
 
-export async function publicLookupReservation(reservationId: string, email: string) {
-  if (!reservationId || !email) return { error: 'Reservation reference and email are required.' }
+export async function publicLookupReservation(confirmationCode: string, email: string) {
+  if (!confirmationCode || !email) {
+    return { error: 'Booking reference and email are required.' }
+  }
 
   const supabase = createServiceClient()
 
   const { data: reservation } = await supabase
     .from('reservations')
     .select('*, guests(first_name, last_name, email), room_types(name)')
-    .eq('id', reservationId)
+    .eq('confirmation_code', confirmationCode.toUpperCase().trim())
     .single()
 
   if (!reservation || reservation.guests?.email?.toLowerCase() !== email.toLowerCase().trim()) {
-    // Deliberately vague — don't reveal whether the ID exists but the email
-    // didn't match, vs. the ID not existing at all.
+    // Deliberately vague — don't reveal whether the code exists but the email
+    // didn't match, vs. the code not existing at all.
     return { error: 'No booking found matching that reference and email.' }
   }
 
   return { reservation }
 }
 
-export async function publicCancelReservation(reservationId: string, email: string) {
-  const lookup = await publicLookupReservation(reservationId, email)
+export async function publicCancelReservation(confirmationCode: string, email: string) {
+  const lookup = await publicLookupReservation(confirmationCode, email)
   if (lookup.error || !lookup.reservation) return { error: lookup.error }
 
   if (!['pending', 'confirmed'].includes(lookup.reservation.status)) {
@@ -254,7 +257,7 @@ export async function publicCancelReservation(reservationId: string, email: stri
   const { error } = await supabase
     .from('reservations')
     .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-    .eq('id', reservationId)
+    .eq('id', lookup.reservation.id)
 
   if (error) return { error: error.message }
 

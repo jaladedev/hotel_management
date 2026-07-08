@@ -1,132 +1,108 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentStaff } from '@/lib/get-current-staff'
-import { FolioLedger } from '@/components/folios/folio-ledger'
-import { CashPaymentForm } from '@/components/folios/cash-payment-form'
-import { IncidentalChargeForm } from '@/components/folios/incidental-charge-form'
-import { PaystackPaymentButton } from '@/components/folios/paystack-payment-button'
-import { PrintReceiptButton } from '@/components/folios/print-receipt-button'
-import { SecurityDepositPanel } from '@/components/folios/security-deposit-panel'
-import { RefundsPanel } from '@/components/folios/refunds-panel'
-import { ReservationStatusBadge } from '@/components/reservations/reservation-status-badge'
 
-export default async function FolioDetailPage({
-  params,
+export default async function FoliosPage({
+  searchParams,
 }: {
-  params: Promise<{ reservationId: string }>
+  searchParams: Promise<{ status?: string }>
 }) {
-  const staff = await getCurrentStaff()
   const supabase = await createClient()
-  const { reservationId } = await params
+  const params = await searchParams
+  const statusFilter = params.status === 'closed' ? 'closed' : 'open'
 
-  const { data: reservation } = await supabase
-    .from('reservations')
-    .select('*, guests(first_name, last_name, email, phone), room_types(name), rooms(room_number)')
-    .eq('id', reservationId)
-    .single()
-
-  if (!reservation) notFound()
-
-  const { data: folio } = await supabase
+  const { data: folios } = await supabase
     .from('folios')
+    .select(
+      '*, reservations(id, check_in, check_out, guests(first_name, last_name), room_types(name))'
+    )
+    .eq('status', statusFilter)
+    .order('created_at', { ascending: false })
+
+  const folioIds = (folios || []).map((f) => f.id)
+  const { data: balances } = await supabase
+    .from('folio_balances')
     .select('*')
-    .eq('reservation_id', reservationId)
-    .single()
+    .in('folio_id', folioIds.length > 0 ? folioIds : ['00000000-0000-0000-0000-000000000000'])
 
-  if (!folio) notFound()
-
-  const [{ data: lineItems }, { data: balanceRow }, { data: paystackPayments }, { data: refunds }] =
-    await Promise.all([
-      supabase
-        .from('folio_line_items')
-        .select('*')
-        .eq('folio_id', folio.id)
-        .order('created_at'),
-      supabase.from('folio_balances').select('balance').eq('folio_id', folio.id).maybeSingle(),
-      supabase
-        .from('payments')
-        .select('*')
-        .eq('folio_id', folio.id)
-        .eq('method', 'paystack')
-        .eq('status', 'success')
-        .eq('is_security_deposit', false),
-      supabase
-        .from('refunds')
-        .select('*')
-        .eq('folio_id', folio.id)
-        .order('created_at', { ascending: false }),
-    ])
-
-  const balance = balanceRow?.balance ?? 0
-  const canManage = staff.role === 'admin' || staff.role === 'front_desk'
-  const guestName = reservation.guests
-    ? `${reservation.guests.first_name} ${reservation.guests.last_name}`
-    : 'Unknown guest'
+  const balanceByFolioId = new Map((balances || []).map((b) => [b.folio_id, b.balance ?? 0]))
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          href="/dashboard/reservations"
-          className="text-xs font-medium text-ink-soft hover:text-indigo-700"
-        >
-          ← Back to reservations
-        </Link>
-      </div>
-
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-display font-medium text-ink">{guestName}</h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            {reservation.room_types?.name}
-            {reservation.rooms?.room_number ? ` — Room ${reservation.rooms.room_number}` : ''}
-          </p>
-          <p className="text-sm text-ink-soft">
-            {reservation.check_in} → {reservation.check_out}
-          </p>
-          {reservation.guests?.email && (
-            <p className="text-sm text-ink-soft">{reservation.guests.email}</p>
-          )}
-          {reservation.guests?.phone && (
-            <p className="text-sm text-ink-soft">{reservation.guests.phone}</p>
-          )}
-        </div>
-        <div className="text-right">
-          <ReservationStatusBadge status={reservation.status} />
-          <p className="mt-2 text-xs uppercase text-ink-soft/60">
-            Folio: {folio.status}
-          </p>
+    <div>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="font-display text-xl font-medium text-ink">Folios</h1>
+        <div className="flex gap-2 text-sm">
+          <Link
+            href="/dashboard/folios?status=open"
+            className={`rounded-md px-3 py-1.5 font-medium ${
+              statusFilter === 'open' ? 'bg-indigo-700 text-paper' : 'bg-paper-dim text-ink-soft'
+            }`}
+          >
+            Open
+          </Link>
+          <Link
+            href="/dashboard/folios?status=closed"
+            className={`rounded-md px-3 py-1.5 font-medium ${
+              statusFilter === 'closed' ? 'bg-indigo-700 text-paper' : 'bg-paper-dim text-ink-soft'
+            }`}
+          >
+            Closed
+          </Link>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        {canManage && folio.status === 'open' && (
-          <>
-            <CashPaymentForm folioId={folio.id} />
-            {balance > 0 && (
-              <PaystackPaymentButton folioId={folio.id} defaultAmount={balance} />
-            )}
-            <IncidentalChargeForm folioId={folio.id} />
-          </>
-        )}
-        <PrintReceiptButton reservationId={reservation.id} />
-      </div>
-
-      <FolioLedger lineItems={lineItems || []} balance={balance} />
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <SecurityDepositPanel
-          folioId={folio.id}
-          status={folio.security_deposit_status}
-          amount={folio.security_deposit_amount}
-        />
-        <RefundsPanel
-          folioId={folio.id}
-          paystackPayments={paystackPayments || []}
-          refunds={refunds || []}
-        />
-      </div>
+      <table className="w-full overflow-hidden rounded-lg border border-rule bg-white text-sm">
+        <thead className="bg-paper-dim text-left text-xs font-medium uppercase text-ink-soft">
+          <tr>
+            <th className="px-4 py-2">Guest</th>
+            <th className="px-4 py-2">Room Type</th>
+            <th className="px-4 py-2">Stay</th>
+            <th className="px-4 py-2">Balance</th>
+            <th className="px-4 py-2"></th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-rule/60">
+          {(folios || []).map((f) => {
+            const balance = balanceByFolioId.get(f.id) ?? 0
+            return (
+              <tr key={f.id}>
+                <td className="px-4 py-2 font-medium text-ink">
+                  {f.reservations?.guests
+                    ? `${f.reservations.guests.first_name} ${f.reservations.guests.last_name}`
+                    : '—'}
+                </td>
+                <td className="px-4 py-2 text-ink-soft">{f.reservations?.room_types?.name || '—'}</td>
+                <td className="px-4 py-2 font-mono text-xs text-ink-soft">
+                  {f.reservations?.check_in} → {f.reservations?.check_out}
+                </td>
+                <td
+                  className={`px-4 py-2 font-mono ${
+                    balance > 0 ? 'text-status-bad' : 'text-status-good'
+                  }`}
+                >
+                  {balance.toLocaleString()}
+                </td>
+                <td className="px-4 py-2">
+                  {f.reservations && (
+                    <Link
+                      href={`/dashboard/folios/${f.reservations.id}`}
+                      className="text-xs font-medium text-indigo-700 hover:text-indigo-800"
+                    >
+                      View
+                    </Link>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
+          {(folios || []).length === 0 && (
+            <tr>
+              <td colSpan={5} className="px-4 py-6 text-center text-ink-soft/60">
+                No {statusFilter} folios.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   )
 }

@@ -69,7 +69,7 @@ export default async function FolioDetailPage({
       <div>
         <Link
           href="/dashboard/reservations"
-          className="text-xs font-medium text-gray-500 hover:text-gray-700"
+          className="text-xs font-medium text-ink-soft hover:text-indigo-700"
         >
           ← Back to reservations
         </Link>
@@ -77,24 +77,27 @@ export default async function FolioDetailPage({
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">{guestName}</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-xl font-display font-medium text-ink">{guestName}</h1>
+          <p className="mt-1 text-sm text-ink-soft">
             {reservation.room_types?.name}
             {reservation.rooms?.room_number ? ` — Room ${reservation.rooms.room_number}` : ''}
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-ink-soft">
             {reservation.check_in} → {reservation.check_out}
           </p>
           {reservation.guests?.email && (
-            <p className="text-sm text-gray-500">{reservation.guests.email}</p>
+            <p className="text-sm text-ink-soft">{reservation.guests.email}</p>
           )}
           {reservation.guests?.phone && (
-            <p className="text-sm text-gray-500">{reservation.guests.phone}</p>
+            <p className="text-sm text-ink-soft">{reservation.guests.phone}</p>
           )}
         </div>
         <div className="text-right">
           <ReservationStatusBadge status={reservation.status} />
-          <p className="mt-2 text-xs uppercase text-gray-400">
+          {reservation.confirmation_code && (
+            <p className="mt-2 ledger-stamp">{reservation.confirmation_code}</p>
+          )}
+          <p className="mt-2 text-xs uppercase text-ink-soft/60">
             Folio: {folio.status}
           </p>
         </div>
