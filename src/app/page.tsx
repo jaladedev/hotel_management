@@ -2,12 +2,13 @@ import Link from 'next/link'
 import { getActiveRoomTypes } from '@/app/actions/public-booking'
 import { getHotelSettings } from '@/app/actions/hotel-settings'
 import { HomeSearchWidget } from '@/components/public/home-search-widget'
+import { RateTagIcon, ClockIcon, CardIcon, WifiIcon } from '@/components/public/feature-icons'
 
 const FEATURES = [
-  { title: 'Best Rate Guaranteed', desc: 'Book direct and always get our lowest price — no third-party markup.' },
-  { title: '24/7 Front Desk', desc: 'Our team is on hand around the clock for anything you need.' },
-  { title: 'Flexible Payment', desc: 'Pay by card via Paystack or settle in cash at check-in.' },
-  { title: 'Free Wi-Fi', desc: 'Fast, complimentary internet throughout the property.' },
+  { title: 'Best Rate Guaranteed', desc: 'Book direct and always get our lowest price — no third-party markup.', Icon: RateTagIcon },
+  { title: '24/7 Front Desk', desc: 'Our team is on hand around the clock for anything you need.', Icon: ClockIcon },
+  { title: 'Flexible Payment', desc: 'Pay by card via Paystack or settle in cash at check-in.', Icon: CardIcon },
+  { title: 'Free Wi-Fi', desc: 'Fast, complimentary internet throughout the property.', Icon: WifiIcon },
 ]
 
 // Placeholder "photography" — a tinted gradient standing in for real room
@@ -69,7 +70,7 @@ export default async function HomePage() {
       </section>
 
       {/* Search widget, overlapping the hero/content boundary */}
-      <div className="px-6">
+      <div className="px-6 pt-2">
         <HomeSearchWidget roomTypes={roomTypes} />
       </div>
 
@@ -141,17 +142,19 @@ export default async function HomePage() {
       </main>
 
       {/* Features strip */}
-      <section className="border-y border-rule bg-white px-6 py-16">
-        <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="text-center">
-              <div className="mx-auto mb-3 h-8 w-8 rounded-full border-2 border-brass-500" />
-              <h3 className="mb-1 text-sm font-semibold text-ink">{f.title}</h3>
-              <p className="text-xs leading-relaxed text-ink-soft">{f.desc}</p>
+          <section className="border-y border-rule bg-white px-6 py-16">
+            <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {FEATURES.map((f) => (
+                <div key={f.title} className="text-center">
+                  <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border-2 border-brass-500">
+                    <f.Icon className="h-5 w-5 text-brass-600" />
+                  </div>
+                  <h3 className="mb-1 text-sm font-semibold text-ink">{f.title}</h3>
+                  <p className="text-xs leading-relaxed text-ink-soft">{f.desc}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
 
       {/* Footer */}
       <footer className="bg-indigo-900 px-6 py-12 text-indigo-100">
