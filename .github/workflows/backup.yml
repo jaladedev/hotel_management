@@ -1,0 +1,45 @@
+name: Nightly Database Backup
+
+# Runs a full pg_dump every night and stores it as a GitHub Actions
+# artifact — a second, independent copy of your data that you hold
+# yourself, on top of (not instead of) Supabase's own Pro-plan backups.
+#
+# SETUP REQUIRED:
+# 1. In Supabase Dashboard -> Settings -> Database -> Connection string,
+#    copy the "URI" connection string (use the pooler/session mode one,
+#    port 5432 or 6543 depending on what's shown).
+# 2. In your GitHub repo -> Settings -> Secrets and variables -> Actions,
+#    add a new secret named SUPABASE_DB_URL with that connection string.
+# 3. Commit this file to .github/workflows/backup.yml — GitHub picks it
+#    up automatically, no further setup needed.
+#
+# RETENTION: GitHub Actions artifacts are kept 90 days by default on
+# this schedule (adjustable below via retention-days). For longer-term
+# archival, swap the final upload step for a push to Cloudflare R2 or
+# S3 instead — ask if you want that version.
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # 2am UTC daily — adjust to your preferred time
+  workflow_dispatch: {} # lets you also trigger a backup manually from the Actions tab
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Dump database
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          pg_dump "$SUPABASE_DB_URL" --no-owner --no-privileges -F c -f "backup-${DATE}.dump"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backup-*.dump
+          retention-days: 90
